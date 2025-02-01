@@ -1,8 +1,15 @@
 @startuml ClassDiagram
+
 ' 従業員の名前を管理するクラス。名前の取得メソッドを持つ。
 class Name {
   - name : String // 従業員の名前（20文字以内）
   + getName(): String // 名前を取得するメソッド
+}
+
+' 従業員のフリガナを管理するクラス。フリガナの取得メソッドを持つ。
+class Phonetic {
+  - phonetic : String // 従業員の発音（カタカナorひらがな）
+  + getPhonetic(): String // 発音を取得するメソッド
 }
 
 ' 従業員IDを管理するクラス。従業員IDの取得メソッドを持つ。
@@ -75,6 +82,7 @@ class Remarks {
 class EmployeeInfo {
   - employeeId : EmployeeId // 従業員ID
   - name : Name // 従業員の名前
+  - phonetic : Phonetic // 従業員の発音
   - birthDate : BirthDate // 生年月日
   - joinDate : JoinDate // 入社日
   - engineerStartYear : EngineerStartYear // エンジニアとしての開始年
@@ -85,7 +93,7 @@ class EmployeeInfo {
   - career : Career // 経歴情報
   - trainingHistory : TrainingHistory // 研修履歴
   - remarks : Remarks // 備考
-  + EmployeeInfo(employeeId: EmployeeId, name: Name, birthDate: BirthDate, joinDate: JoinDate, engineerStartYear: EngineerStartYear, technicalSkill: TechnicalSkill, attitude: Attitude, communicationSkill: CommunicationSkill, leadership: Leadership, career: Career, trainingHistory: TrainingHistory, remarks: Remarks) // コンストラクタ
+  + EmployeeInfo(employeeId: EmployeeId, name: Name, phonetic: Phonetic, birthDate: BirthDate, joinDate: JoinDate, engineerStartYear: EngineerStartYear, technicalSkill: TechnicalSkill, attitude: Attitude, communicationSkill: CommunicationSkill, leadership: Leadership, career: Career, trainingHistory: TrainingHistory, remarks: Remarks) // コンストラクタ
   + toString(): String // オブジェクトの文字列表現を返すためのメソッド
 }
 
@@ -177,7 +185,9 @@ class CSVUI {
 
 ' 入力データの検証を行うクラス。名前、従業員ID、生年月日、入社日、キャリア、研修履歴の検証メソッドを持つ。
 class Validation {
+  + validationData(emp: EmployeeInfo) // 従業員情報を検証するメソッド
   + validateName(name: String): boolean // 名前の検証を行うメソッド
+  +  validatePhonetic(phonetic: String): boolean//フリガナの検証を行うメソッド
   + validateEmployeeId(employeeId: String): boolean // 従業員IDの検証を行うメソッド
   + validateBirthDate(birthDate: LocalDate): boolean // 生年月日の検証を行うメソッド
   + validateJoinDate(joinDate: LocalDate): boolean // 入社日の検証を行うメソッド
@@ -187,6 +197,7 @@ class Validation {
 
 ' 集約やコンポジションの場合、全体から部分に向かう矢印になる
 EmployeeInfo --> Name
+EmployeeInfo -->Phonetic
 EmployeeInfo --> EmployeeId
 EmployeeInfo --> BirthDate
 EmployeeInfo --> JoinDate
@@ -204,14 +215,15 @@ ListViewUI --> EmployeeManager : manages
 DetailViewUI --> EmployeeInfo : displays
 AddEditUI --> EmployeeInfo : edits
 
-' ApplicationクラスはEmployeeManagerを使用する
-Application --> EmployeeManager
+' MainClassクラスはEmployeeManagerを使用する
+MainClass--> EmployeeManager
 EmployeeManager --> EmployeeInfo
 
 EmployeeManager ..> Logger : uses
 EmployeeManager ..> ErrorHandler : uses
 
 @enduml
+
 
 
 
