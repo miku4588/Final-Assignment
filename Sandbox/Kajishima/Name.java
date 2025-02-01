@@ -17,6 +17,7 @@ public class Name {
     public String getName() {
         return name;
     }
+<<<<<<< HEAD
 
     /**
      * 氏名のsetter
