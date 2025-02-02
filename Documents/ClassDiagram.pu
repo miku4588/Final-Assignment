@@ -1,294 +1,254 @@
 @startuml ClassDiagram
 
-' 従業員の名前を管理するクラス。名前の取得メソッドを持つ。
+' 入力データの検証を行うクラス
+abstract class EmployeeInfoValidator {
++ validateLength(value: String, minLength: int, maxLength: int): boolean // 文字列の長さを検証する
++ validateCharacterType(value: String, type: String): boolean // 文字列の文字種を検証する
++ validateFormat(value: String, format: String): boolean // 文字列の形式を検証する
+}
+
+' 従業員の名前を管理するクラス。
 class Name {
-  - name : String // 従業員の名前（20文字以内）
-  + getName(): String // 名前を取得するメソッド
+- name : String // 従業員の名前（20文字以内）
++ getName(): String // 名前を取得するメソッド
 }
 
-' 従業員のフリガナを管理するクラス。フリガナの取得メソッドを持つ。
+' 従業員のフリガナを管理するクラス。
 class Phonetic {
-  - phonetic : String // 従業員の発音（カタカナorひらがな）
-  + getPhonetic(): String // 発音を取得するメソッド
+- phonetic : String // 氏名カナ（全角カナ・全角スペース・半角スペースのみ、30文字以内）
++ getPhonetic(): String // 発音を取得するメソッド
 }
 
-' 従業員IDを管理するクラス。従業員IDの取得メソッドを持つ。
+' 従業員のIDを管理するクラス。
 class EmployeeId {
-  - employeeId : String // 従業員のID（半角英数字）
-  + getEmployeeId(): String // 従業員IDを取得するメソッド
+- employeeId : String // 従業員のID（半角英数字）
++ getEmployeeId(): String // 従業員IDを取得するメソッド
 }
 
-' 従業員の生年月日を管理するクラス。生年月日の取得メソッドを持つ。
+' 従業員の生年月日を管理するクラス。
 class BirthDate {
-  - birthDate : LocalDate // 従業員の生年月日（YYYY/MM/DD形式）
-  + getBirthDate(): LocalDate // 生年月日を取得するメソッド
+- birthDate : LocalDate // 従業員の生年月日（YYYY/MM/DD形式）
++ getBirthDate(): LocalDate // 生年月日を取得するメソッド
 }
 
-' 従業員の入社日を管理するクラス。入社日の取得メソッドを持つ。
-class JoinDate {
-  - joinDate : LocalDate // 従業員の入社日（YYYY/MM形式）
-  + getJoinDate(): LocalDate // 入社日を取得するメソッド
+' 従業員の入社日を管理するクラス。
+class JoinYearMonth {
+- joinYearMonth : YearMonth // 従業員の入社日（YYYY/MM形式）
++ getJoinYearMonth(): YearMonth // 入社日を取得するメソッド
 }
 
-' 従業員のエンジニアとしての開始年を管理するクラス。開始年の取得メソッドを持つ。
+
+' 従業員のエンジニアとしての開始年を管理するクラス。
 class EngineerStartYear {
-  - engineerStartYear : int // 従業員のエンジニアとしての開始年（YYYY形式）
-  + getEngineerStartYear(): int // 開始年を取得するメソッド
+- engineerStartYear : Year // 従業員のエンジニアとしての開始年（YYYY形式）
++ getEngineerStartYear(): int // 開始年を取得するメソッド
 }
 
-' 従業員の技術スキルを評価するクラス。スキル評価の取得メソッドを持つ。
+' 従業員の技術スキルを評価するクラス。
 class TechnicalSkill {
-  - technicalSkill : int // 技術スキルの評価（プルダウン五段階評価）
-  + getTechnicalSkill(): int // 技術スキル評価を取得するメソッド
+- technicalSkill : double // 技術スキルの評価（プルダウン五段階評価）
++ getTechnicalSkill(): double // 技術スキル評価を取得するメソッド
 }
 
-' 従業員の態度を評価するクラス。態度評価の取得メソッドを持つ。
+' 従業員の態度を評価するクラス。
 class Attitude {
-  - attitude : int // 従業員の態度評価（プルダウン五段階評価）
-  + getAttitude(): int // 態度評価を取得するメソッド
+- attitude : double // 従業員の態度評価（プルダウン五段階評価）
++ getAttitude(): double // 態度評価を取得するメソッド
 }
 
-' 従業員のコミュニケーションスキルを評価するクラス。コミュニケーションスキルの取得メソッドを持つ。
+' 従業員のコミュニケーションスキルを評価するクラス。
 class CommunicationSkill {
-  - communicationSkill : int // コミュニケーションスキルの評価（プルダウン五段階評価）
-  + getCommunicationSkill(): int // コミュニケーションスキル評価を取得するメソッド
+- communicationSkill : double // コミュニケーションスキルの評価（プルダウン五段階評価）
++ getCommunicationSkill(): double // コミュニケーションスキル評価を取得するメソッド
 }
 
-' 従業員の技術力を評価するクラス。技術力評価の取得メソッドを持つ。
+' 従業員のリーダーシップを評価するクラス。
 class Leadership {
-  - leadership : int // 技術力評価（プルダウン五段階評価）
-  + getLeadership(): int // 技術力評価を取得するメソッド
+- leadership : double // リーダーシップ評価（プルダウン五段階評価）
++ getLeadership(): double // リーダーシップ評価を取得するメソッド
 }
 
-' 従業員の経歴情報を管理するクラス。経歴経歴情報の取得メソッドを持つ。
+' 従業員の経歴情報を管理するクラス。
 class Career {
-  - career : String // 従業員の経歴情報（改行可能、500文字以内）
-  + getCareer(): String // 経歴情報を取得するメソッド
+- career : String // 従業員の経歴情報（改行可能、500文字以内）
++ getCareer(): String // 経歴情報を取得するメソッド
 }
 
-' 従業員の研修履歴を管理するクラス。研修履歴の取得メソッドを持つ。
+' 従業員の研修履歴を管理するクラス。
 class TrainingHistory {
-  - trainingHistory : String // 従業員の研修履歴（改行可能、500文字以内）
-  + getTrainingHistory(): String // 研修履歴を取得するメソッド
+- trainingHistory : String // 従業員の研修履歴（改行可能、500文字以内）
++ getTrainingHistory(): String // 研修履歴を取得するメソッド
 }
 
-' 従業員に関する備考を管理するクラス。備考の取得メソッドを持つ。
+' 従業員に関する備考を管理するクラス。
 class Remarks {
-  - remarks : String // 従業員に関する備考（改行可能、500文字以内）
-  + getRemarks(): String // 備考を取得するメソッド
+- remarks : String // 従業員に関する備考（改行可能、500文字以内）
++ getRemarks(): String // 備考を取得するメソッド
 }
 
-' 従業員の詳細情報を管理するクラス。各属性の取得メソッドを持つ。
+' 従業員の情報を管理するクラス。
 class EmployeeInfo {
-  - employeeId : EmployeeId // 従業員ID
-  - name : Name // 従業員の名前
-  - phonetic : Phonetic // 従業員の発音
-  - birthDate : BirthDate // 生年月日
-  - joinDate : JoinDate // 入社日
-  - engineerStartYear : EngineerStartYear // エンジニアとしての開始年
-  - technicalSkill : TechnicalSkill // 技術スキル
-  - attitude : Attitude // 態度
-  - communicationSkill : CommunicationSkill // コミュニケーションスキル
-  - leadership : Leadership // 技術力
-  - career : Career // 経歴情報
-  - trainingHistory : TrainingHistory // 研修履歴
-  - remarks : Remarks // 備考
-  + EmployeeInfo(employeeId: EmployeeId, name: Name, phonetic: Phonetic, birthDate: BirthDate, joinDate: JoinDate, engineerStartYear: EngineerStartYear, technicalSkill: TechnicalSkill, attitude: Attitude, communicationSkill: CommunicationSkill, leadership: Leadership, career: Career, trainingHistory: TrainingHistory, remarks: Remarks) // コンストラクタ
-  + toString(): String // オブジェクトの文字列表現を返すためのメソッド
+- employeeId : EmployeeId // 従業員ID
+- name : Name // 従業員の名前
+- phonetic : Phonetic // 従業員の発音
+- birthDate : BirthDate // 生年月日
+- joinDate : JoinDate // 入社日
+- engineerStartYear : EngineerStartYear // エンジニアとしての開始年
+- technicalSkill : TechnicalSkill // 技術スキル
+- attitude : Attitude // 態度
+- communicationSkill : CommunicationSkill // コミュニケーションスキル
+- leadership : Leadership // リーダーシップ
+- career : Career // 経歴情報
+- trainingHistory : TrainingHistory // 研修履歴
+- remarks : Remarks // 備考
+
++ EmployeeInfo(employeeId: EmployeeId, name: Name, pronunciation: Phonetic, birthDate: BirthDate, joinDate: JoinDate, engineerStartYear: EngineerStartYear, technicalSkill: TechnicalSkill, attitude: Attitude, communicationSkill: CommunicationSkill, leadership: Leadership, career: Career, trainingHistory: TrainingHistory, remarks: Remarks) // コンストラクタ
++ toString(): String // オブジェクトの文字列表現を返すためのメソッド
 }
 
-' 従業員情報の管理を行うクラス。従業員の追加、削除、CSVのインポート・エクスポートなどのメソッドを持つ。
+' 従業員情報を管理するクラス。
 class EmployeeManager {
-  - employeeList: List<EmployeeInfo>  // 従業員情報のリスト
-  + importCSV() // CSVファイルから従業員情報をインポートするメソッド
-  + exportCSV() // 従業員情報をCSVファイルとしてエクスポート（出力）するメソッド
-  + addEmployee(emp: EmployeeInfo): boolean // 新しい従業員を追加するメソッド
-  + deleteEmployee(emp: EmployeeInfo): boolean // 従業員を削除するメソッド
-  + editEmployee(emp: EmployeeInfo): boolean // 従業員情報を編集するメソッド
-  + getEmployeeList(): List<EmployeeInfo> // 現在の従業員リストを取得するメソッド
+- employeeList: List<EmployeeInfo>  // 従業員情報のリスト
 }
 
-' エラーハンドリングを行うクラス
-class ErrorHandler {
-  - logger : Logger // Logger インスタンス
-  + handleError(errorMessage: String) // エラーメッセージを処理するメソッド
-  + logException(exception: Exception) // 例外をログに記録するメソッド
+' 新しい従業員を追加するクラス。
+class EmployeeAdder {
++ addEmployee(emp: EmployeeInfo): boolean // 新しい従業員を追加するメソッド
 }
 
-' ログ管理を行うクラス。ログフォルダの作成や例外のログ出力メソッドを持つ。
+' 従業員情報を編集するクラス。
+class EmployeeEditor {
++ editEmployee(emp: EmployeeInfo): boolean // 従業員情報を編集するメソッド
+}
+
+' 従業員を削除するクラス。
+class EmployeeDeleter {
++ deleteEmployee(emp: EmployeeInfo): boolean // 従業員を削除するメソッド
+}
+
+' CSVファイルの読み書きを行うクラス。
+class CSVHandler {
++ readCSV(file: File): List<EmployeeInfo> // CSVファイルから従業員情報を読み込むメソッド
++ writeCSV(employeeList: List<EmployeeInfo>, file: File): boolean // 従業員情報をCSVファイルに書き込むメソッド
+}
+
+' ログを管理するクラス。
 class Logger {
-  - logFolder : String // ログを保存するフォルダのパス
-  + createLogFolder() // ログフォルダを作成するメソッド
-  + logException(exception : Exception) // 例外をログに記録するメソッド
-  + logOutput(message: String) // 操作の結果をログに記録するメソッド
+- logFolder : String // ログを保存するフォルダのパス
++ createLogFolder(): void // ログフォルダを作成するメソッド
++ logException(exception: Exception): void // 例外をログに記録するメソッド
++ logOutput(message: String): void // 操作の結果をログに記録するメソッド
 }
 
-' 従業員一覧を表示するUIクラス。従業員の表示、削除ダイアログ、CSVエクスポートダイアログを表示するメソッドを持つ。
+' エラーハンドリングを行うクラス。
+class ErrorHandler {
+- logger : Logger // Logger インスタンス
++ handleError(errorMessage: String): void // エラーメッセージを処理するメソッド
++ logException(exception: Exception): void // 例外をログに記録するメソッド
+}
+
+' 検索条件を保持するクラス。
+class SortCriteria {
+- searchCriteria : Map<String, String> // 検索条件を保持するマップ
++ keywordSearch(): void // キーワードによる検索を実行するメソッド
++ filterSearch(): void // フィルタによる検索を実行するメソッド
+}
+
+' ソート条件を保持するクラス。
+class SearchCriteria {
+- sortCriteria : Map<String, Boolean> // ソート条件を保持するマップ
++ sortByEmployeeId(): void // 従業員IDでソートするメソッド
++ sortByName(): void // 名前でソートするメソッド
++ sortByAge(): void // 年齢でソートするメソッド
++ sortByYears(): void // 経験年数でソートするメソッド
+}
+
+' 従業員情報を表示するUIクラス。
 class ListViewUI {
-  - employeeTable : JTable // 従業員情報を表示するテーブル
-  - searchBox : JTextField // 検索ボックス
-  - deleteButton : JButton // 削除ボタン
-  - csvExportButton : JButton // CSVエクスポートボタン
-  - addButton : JButton // 従業員追加ボタン
-  + displayEmployees() // 従業員情報を表示するメソッド
-  + showDeleteDialog() // 削除確認ダイアログを表示するメソッド
-  + showCSVExportDialog() // CSVエクスポート確認ダイアログを表示するメソッド
-  + keywordSearch() // キーワードに基づいて従業員情報を検索するメソッド
-  + filterSearch() // 特定の条件に基づいて従業員情報を絞り込むメソッド
+- employeeTable : JTable // 従業員情報を表示するテーブル
+- searchBox : JTextField // 検索ボックス
+- deleteButton : JButton // 削除ボタン
+- csvExportButton : JButton // CSVエクスポートボタン
+- addButton : JButton // 従業員追加ボタン
+
++ displayEmployees(): void // 従業員情報を表示するメソッド
++ showDeleteDialog(): void // 削除確認ダイアログを表示するメソッド
++ showCSVExportDialog(): void // CSVエクスポート確認ダイアログを表示するメソッド
++ keywordSearch(): void // キーワードに基づいて従業員情報を検索するメソッド
++ filterSearch(): void // 特定の条件に基づいて従業員情報を絞り込むメソッド
 }
 
-' 従業員情報の検索機能を提供するクラス。キーワード検索やフィルター検索を行うメソッドを持つ。
-class SearchFunction {
-  - searchCriteria : Map<String, String> // 検索条件を保持するマップ
-  + keywordSearch() // キーワードによる検索を実行するメソッド
-  + filterSearch() // フィルタによる検索を実行するメソッド
-}
-
-' 従業員情報のソート機能を提供するクラス。IDや名前、年齢、勤続年数でのソートを行うメソッドを持つ。
-class SortFunction {
-  - sortCriteria : Map<String, Boolean> // ソート条件を保持するマップ
-  + sortByEmployeeId() // 従業員IDでソートするメソッド
-  + sortByName() // 名前でソートするメソッド
-  + sortByAge() // 年齢でソートするメソッド
-  + sortByYears() // 経験年数でソートするメソッド
-}
-
-' 従業員の詳細情報を表示するUIクラス。詳細情報の表示や削除ダイアログを表示するメソッドを持つ。
+' 従業員の詳細情報を表示するUIクラス。
 class DetailViewUI {
-  - employeeInfoTable : JTable // 従業員の詳細情報を表示するテーブル
-  - editButton : JButton // 編集ボタン
-  - deleteButton : JButton // 削除ボタン
-  - backButton : JButton // 一覧画面に戻るボタン
-  + displayDetail() // 詳細情報を表示するメソッド
-  + showDeleteDialog() // 削除確認ダイアログを表示するメソッド
+- employeeInfoTable : JTable // 従業員の詳細情報を表示するテーブル
+- editButton : JButton // 編集ボタン
+- deleteButton : JButton // 削除ボタン
+- backButton : JButton // 一覧画面に戻るボタン
+
++ displayDetail(): void // 詳細情報を表示するメソッド
++ showDeleteDialog(): void // 削除確認ダイアログを表示するメソッド
 }
 
-' 従業員情報の追加・編集を行うUIクラス。入力フォームの表示や保存、キャンセルのメソッドを持つ。
+' 従業員情報を追加・編集するUIクラス。
 class AddEditUI {
-  - inputForm : JPanel // 入力フォーム
-  - saveButton : JButton // 保存ボタン
-  - cancelButton : JButton // キャンセルボタン
-  + inputEmployeeInfo() // 従業員情報を入力するメソッド
-  + showDiscardDialog() // 入力内容を捨てるか確認するダイアログを表示するメソッド
+- inputForm : JPanel // 入力フォーム
+- saveButton : JButton // 保存ボタン
+- cancelButton : JButton // キャンセルボタン
+
++ inputEmployeeInfo(): void // 従業員情報を入力するメソッド
++ showDiscardDialog(): void // 入力内容を捨てるか確認するダイアログを表示するメソッド
 }
 
-' CSVファイルのアップロードやテンプレートのダウンロードを行うUIクラス。関連するボタンのメソッドを持つ。
+' CSVファイルの操作を行うUIクラス。
 class CSVUI {
-  - templateButton : JButton // テンプレートダウンロードボタン
-  - uploadButton : JButton // CSVアップロードボタン
-  - confirmButton : JButton // 確認ボタン
-  - backButton : JButton // 戻るボタン
-  + downloadTemplate() // テンプレートをダウンロードするメソッド
-  + uploadCSV() // CSVファイルをアップロードするメソッド
-  + showConfirmDialog() // 確認ダイアログを表示するメソッド
+- templateButton : JButton // テンプレートダウンロードボタン
+- uploadButton : JButton // CSVアップロードボタン
+- confirmButton : JButton // 確認ボタン
+- backButton : JButton // 戻るボタン
+
++ downloadTemplate(): void // テンプレートをダウンロードするメソッド
++ uploadCSV(): void // CSVファイルをアップロードするメソッド
++ showConfirmDialog(): void // 確認ダイアログを表示するメソッド
 }
 
-' 入力データの検証を行うクラス。名前、従業員ID、生年月日、入社日、キャリア、研修履歴の検証メソッドを持つ。
-class Validation {
-  + validationData(emp: EmployeeInfo) // 従業員情報を検証するメソッド
-  + validateName(name: String): boolean // 名前の検証を行うメソッド
-  +  validatePhonetic(phonetic: String): boolean//フリガナの検証を行うメソッド
-  + validateEmployeeId(employeeId: String): boolean // 従業員IDの検証を行うメソッド
-  + validateBirthDate(birthDate: LocalDate): boolean // 生年月日の検証を行うメソッド
-  + validateJoinDate(joinDate: LocalDate): boolean // 入社日の検証を行うメソッド
-  + validateCareer(career: String): boolean // キャリア情報の検証を行うメソッド
-  + validateTrainingHistory(trainingHistory: String): boolean // 研修履歴の検証を行うメソッド
-}
+' エラーハンドリングと検索・ソートクラスの関係
+ListViewUI --> ErrorHandler : uses
+ListViewUI --> SortCriteria : uses
+ListViewUI --> SearchCriteria : uses
 
-' 集約やコンポジションの場合、全体から部分に向かう矢印になる
-EmployeeInfo --> Name
-EmployeeInfo -->Phonetic
-EmployeeInfo --> EmployeeId
-EmployeeInfo --> BirthDate
-EmployeeInfo --> JoinDate
-EmployeeInfo --> EngineerStartYear
-EmployeeInfo --> TechnicalSkill
-EmployeeInfo --> Attitude
-EmployeeInfo --> CommunicationSkill
-EmployeeInfo --> Leadership
-EmployeeInfo --> Career
-EmployeeInfo --> TrainingHistory
-EmployeeInfo --> Remarks
-
-' UIクラスとEmployeeManagerやEmployeeInfoの相互作用を示す
+' クラス間の関係
+EmployeeManager --> EmployeeAdder : uses
+EmployeeManager --> EmployeeEditor : uses
+EmployeeManager --> EmployeeDeleter : uses
 ListViewUI --> EmployeeManager : manages
 DetailViewUI --> EmployeeInfo : displays
 AddEditUI --> EmployeeInfo : edits
+CSVUI --> CSVHandler : uses
+EmployeeManager --> CSVHandler : uses
 
-' MainClassクラスはEmployeeManagerを使用する
-MainClass--> EmployeeManager
-EmployeeManager --> EmployeeInfo
-
+' Loggerクラスの依存関係
 EmployeeManager ..> Logger : uses
-EmployeeManager ..> ErrorHandler : uses
+CSVHandler ..> Logger : uses
+ErrorHandler ..> Logger : uses
+
+
+' バリデーションクラスとの関係
+Name ..> EmployeeInfoValidator : uses
+Phonetic ..> EmployeeInfoValidator : uses
+EmployeeId ..> EmployeeInfoValidator : uses
+BirthDate ..> EmployeeInfoValidator : uses
+JoinDate ..> EmployeeInfoValidator : uses
+EngineerStartYear ..> EmployeeInfoValidator : uses
+TechnicalSkill ..> EmployeeInfoValidator : uses
+Attitude ..> EmployeeInfoValidator : uses
+CommunicationSkill ..> EmployeeInfoValidator : uses
+Leadership ..> EmployeeInfoValidator : uses
+Career ..> EmployeeInfoValidator : uses
+TrainingHistory ..> EmployeeInfoValidator : uses
+Remarks ..> EmployeeInfoValidator : uses
+
+' SortCriteriaとSearchCriteriaの関係
+SortCriteria ..> EmployeeManager : uses
+SearchCriteria ..> EmployeeManager : uses
 
 @enduml
-
-
-
-
-' MainClassはEmployeeManagerを使用するため、MainClassからEmployeeManagerへの矢印
-' EmployeeManager(従業員情報の管理)はEmployeeInfo(従業員の詳細情報を管理)を管理するため、EmployeeManagerからEmployeeInfoへの矢印が
-' EmployeeAdd（追加）やEmployeeDelete（削除）はEmployeeInfo(従業員の詳細情報を管理)を操作するため、EmployeeAddやEmployeeDeleteからEmployeeInfoへの矢印
-' Validationクラス（入力データの検証）はEmployeeInfo(従業員の詳細情報を管理)を使用するため、EmployeeInfoからValidationへの矢印
-
-' ＜矢印＞
-' 関連 (Association)
-' 意味: クラス間の関係を示す。
-' 記号: 矢印なしの直線。
-' 付け方: クラス間に直線を引き、必要に応じて多重度を記載。
-
-' 集約 (Aggregation)
-' 意味: 部品と全体の関係を示す（部分が全体に属するが、独立して存在できる）。
-' 記号: 白い菱形の矢印。
-' 付け方: 部品となるクラスから全体のクラスに向けて、白い菱形を付けた矢印を引きます。
-
-' コンポジション (Composition)
-' 意味: 強い依存関係を示し、部品が全体と共に存在を示す。
-' 記号: 黒い菱形の矢印。
-' 付け方: 部品となるクラスから全体のクラスに向けて、黒い菱形を付けた矢印を引く。
-
-' 継承 (Inheritance)
-' 意味: スーパークラスとサブクラスの関係を示す。
-' 記号: 空の矢印。
-' 付け方: サブクラスからスーパークラスに向けて、空の矢印を引く。
-
-' 依存 (Dependency)
-' 意味: クラスが他のクラスに依存していることを示す。
-' 記号: 点線の矢印。
-' 付け方: 依存しているクラスから依存されるクラスに向けて、点線の矢印を引く
-
-
-
-
-' MainClassはEmployeeManagerを使用するため、MainClassからEmployeeManagerへの矢印
-' EmployeeManager(従業員情報の管理)はEmployeeInfo(従業員の詳細情報を管理)を管理するため、EmployeeManagerからEmployeeInfoへの矢印が
-' EmployeeAdd（追加）やEmployeeDelete（削除）はEmployeeInfo(従業員の詳細情報を管理)を操作するため、EmployeeAddやEmployeeDeleteからEmployeeInfoへの矢印
-' Validationクラス（入力データの検証）はEmployeeInfo(従業員の詳細情報を管理)を使用するため、EmployeeInfoからValidationへの矢印
-
-' ＜矢印＞
-' 関連 (Association)
-' 意味: クラス間の関係を示す。
-' 記号: 矢印なしの直線。
-' 付け方: クラス間に直線を引き、必要に応じて多重度を記載。
-
-' 集約 (Aggregation)
-' 意味: 部品と全体の関係を示す（部分が全体に属するが、独立して存在できる）。
-' 記号: 白い菱形の矢印。
-' 付け方: 部品となるクラスから全体のクラスに向けて、白い菱形を付けた矢印を引きます。
-
-' コンポジション (Composition)
-' 意味: 強い依存関係を示し、部品が全体と共に存在を示す。
-' 記号: 黒い菱形の矢印。
-' 付け方: 部品となるクラスから全体のクラスに向けて、黒い菱形を付けた矢印を引く。
-
-' 継承 (Inheritance)
-' 意味: スーパークラスとサブクラスの関係を示す。
-' 記号: 空の矢印。
-' 付け方: サブクラスからスーパークラスに向けて、空の矢印を引く。
-
-' 依存 (Dependency)
-' 意味: クラスが他のクラスに依存していることを示す。
-' 記号: 点線の矢印。
-' 付け方: 依存しているクラスから依存されるクラスに向けて、点線の矢印を引く
-
