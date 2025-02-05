@@ -5,4 +5,4 @@
 - Documentsフォルダ内に下記資料を格納
     - ~~[状態遷移図](//Documents/)~~　※データ格納待ち
     - シーケンス図
-    - [クラス図](//Documents/Class%20Diagram%20Folder/)
+    - [クラス図](//Documents/Class%20Diagram%20Folder/ClassDiagram.pu)
