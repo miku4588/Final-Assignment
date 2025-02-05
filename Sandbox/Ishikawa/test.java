@@ -1,5 +1,5 @@
 public class test {
 public static void main(String[] args) {
-    System.err.println("Test2");
+    System.err.println("プッシュテスト");
 }
 }
