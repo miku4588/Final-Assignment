@@ -11,7 +11,11 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 
 public class ListViewUI {
-    
+    public static void main(String[] args) {
+        // ListViewUI のインスタンスを作成して UI を表示
+        new ListViewUI();
+    }
+
     public ListViewUI() {
         // JFrameの設定
         JFrame frame = new JFrame("人材管理アプリ");
