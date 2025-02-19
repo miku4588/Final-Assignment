@@ -1,0 +1,45 @@
+@startuml StateDiagram_MultipleChoice
+
+title 状態遷移図【複数選択画面】
+hide empty description
+scale 750 width
+
+' 【状態】
+
+state 一覧表示 #Skyblue
+
+state 複数選択 #YellowGreen {
+    state 選択中
+    state CSV出力確認
+    state CSV出力中
+    state CSV出力完了表示
+    state 削除確認
+    state 削除中
+    state 削除完了表示
+}
+
+複数選択 : 1データでもチェックが付けば、削除 / CSV出力ボタンが有効化
+複数選択 : 全データのチェックが外れたら、削除 / CSV出力ボタンは無効化
+
+
+' 【遷移】
+
+一覧表示 --> 選択中 : チェックボックス /\n全件選択ボタン押下
+
+' CSV出力
+選択中 -[#Red]up-> 選択中 : <color:Red>チェック追加 / 外す [選択データ > 0]</color>
+選択中 -[#Red]-> 一覧表示 : <color:Red>選択解除ボタン押下 /</color>\n<color:Red>全てのチェックを外す</color>
+選択中 --> CSV出力確認 : CSV出力ボタン押下
+CSV出力確認 --> 選択中 : キャンセル /\n☒ボタン押下
+CSV出力確認 --> CSV出力中 : 確認画面の\nCSV出力ボタン押下
+CSV出力中 --> CSV出力完了表示 : 処理完了
+CSV出力完了表示 --> 一覧表示 : ☒ボタン押下
+
+' 削除
+選択中 --> 削除確認 : 削除ボタン押下
+削除確認 --> 選択中 : キャンセル /\n☒ボタン押下
+削除確認 --> 削除中 : はいボタン押下
+削除中 --> 削除完了表示 : 処理完了
+削除完了表示 --> 一覧表示 : ☒ボタン押下
+
+@enduml
