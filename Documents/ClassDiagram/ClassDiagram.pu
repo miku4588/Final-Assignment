@@ -133,8 +133,8 @@ class CSVHandler {
 }
 
 ' ログを管理するクラス。
-class Logger {
-- logFolder : String // ログを保存するフォルダのパス
+class EmployeeInfoLogger {
+- LOG_FOLDER : String // ログを保存するフォルダのパス
 + createLogFolder(): void // ログフォルダを作成するメソッド
 + logException(exception: Exception): void // 例外をログに記録するメソッド
 + logOutput(message: String): void // 操作の結果をログに記録するメソッド
@@ -142,7 +142,7 @@ class Logger {
 
 ' エラーハンドリングを行うクラス。
 class ErrorHandler {
-- logger : Logger // Logger インスタンス
+- logger : EmployeeInfoLogger // EmployeeInfoLogger インスタンス
 + handleError(errorMessage: String): void // エラーメッセージを処理するメソッド
 + logException(exception: Exception): void // 例外をログに記録するメソッド
 }
@@ -226,10 +226,10 @@ AddEditUI --> EmployeeInfo : edits
 CSVUI --> CSVHandler : uses
 EmployeeManager --> CSVHandler : uses
 
-' Loggerクラスの依存関係
-EmployeeManager ..> Logger : uses
-CSVHandler ..> Logger : uses
-ErrorHandler ..> Logger : uses
+' EmployeeInfoLoggerクラスの依存関係
+EmployeeManager ..> EmployeeInfoLogger : uses
+CSVHandler ..> EmployeeInfoLogger : uses
+ErrorHandler ..> EmployeeInfoLogger : uses
 
 
 ' バリデーションクラスとの関係
