@@ -8,7 +8,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -109,14 +108,31 @@ public class AddEditUI {
 
 // エンジニア情報入力フォームのパネル
 class EmployeeFormPanel extends JPanel {
-    private JTextField nameField, phoneticField, birthDateField, joinYearMonthField,
-            engineerStartYearField, languagesSpokenField; // 各入力フィールド
+    private JTextField nameField, phoneticField, languagesSpokenField; // 各入力フィールド
+    private JComboBox<String> birthYearBox, birthMonthBox, birthDayBox; // 生年月日用のコンボボックス
+    private JComboBox<String> joinYearBox, joinMonthBox; // 入社年月用のコンボボックス
+    private JComboBox<String> engineerStartYearBox; // エンジニア開始年用のコンボボックス
     private JComboBox<String> technicalSkillBox, attitudeBox, communicationSkillBox, leadershipBox; // コンボボックス
     private JTextArea careerArea, trainingHistoryArea, remarksArea; // テキストエリア
 
     public EmployeeFormPanel() {
         setLayout(new GridBagLayout()); // GridBagLayoutでレイアウトを管理
 
+        // 年、月、日のリストを作成
+        String[] years = new String[100];
+        for (int i = 0; i < 100; i++) {
+            years[i] = String.valueOf(2025 - i); // 2025年から過去100年分
+        }
+
+        String[] months = new String[12];
+        for (int i = 0; i < 12; i++) {
+            months[i] = String.valueOf(i + 1); // 1月から12月
+        }
+
+        String[] days = new String[31];
+        for (int i = 0; i < 31; i++) {
+            days[i] = String.valueOf(i + 1); // 1日から31日
+        }
 
         // 左側の入力フィールドパネル
         JPanel leftPanel = new JPanel(new GridBagLayout());
@@ -131,9 +147,9 @@ class EmployeeFormPanel extends JPanel {
         Component[] fields = {
                 nameField = new JTextField(25), // 横幅を25に設定
                 phoneticField = new JTextField(25), // 横幅を25に設定
-                birthDateField = new JTextField(25), // 横幅を25に設定
-                joinYearMonthField = new JTextField(25), // 横幅を25に設定
-                engineerStartYearField = new JTextField(25), // 横幅を25に設定
+                createDatePanel("生年月日", years, months, days),
+                createDatePanel("入社年月", years, months, null), // 日を含まない
+                engineerStartYearBox = new JComboBox<>(years), // エンジニア開始年をプルダウンに変更
                 languagesSpokenField = new JTextField(25), // 扱える言語用のテキストフィールド
                 technicalSkillBox = new JComboBox<>(new String[] { "1", "2", "3", "4", "5" }),
                 attitudeBox = new JComboBox<>(new String[] { "1", "2", "3", "4", "5" }),
@@ -144,10 +160,7 @@ class EmployeeFormPanel extends JPanel {
         // プレースホルダーを設定するためのヘルパーメソッド
         setPlaceholder(nameField, "例: 山田太郎");
         setPlaceholder(phoneticField, "例: ヤマダタロウ");
-        setPlaceholder(birthDateField, "yyyy年mm月dd日");
-        setPlaceholder(joinYearMonthField, "yyyy年㎜月");
-        setPlaceholder(engineerStartYearField, "yyyy年");
-        setPlaceholder(languagesSpokenField, "（半角カンマで区切る）");
+        setPlaceholder(languagesSpokenField, "例: 日本語, 英語");
 
         // 左パネルにラベルと入力フィールドを追加
         for (int i = 0; i < labels.length; i++) {
@@ -193,6 +206,25 @@ class EmployeeFormPanel extends JPanel {
         // 左右のパネルを全体パネルに追加
         add(leftPanel); // 左パネルを追加
         add(rightPanel); // 右パネルを追加
+    }
+
+    // 生年月日や入社年月のためのコンボボックスを作成
+    private JPanel createDatePanel(String title, String[] years, String[] months, String[] days) {
+        JPanel panel = new JPanel();
+        JComboBox<String> yearBox = new JComboBox<>(years);
+        JComboBox<String> monthBox = new JComboBox<>(months);
+        JComboBox<String> dayBox = (days != null) ? new JComboBox<>(days) : null;
+
+        panel.add(new JLabel(title + " 年:"));
+        panel.add(yearBox);
+        panel.add(new JLabel("月:"));
+        panel.add(monthBox);
+        if (dayBox != null) { // 日が必要な場合
+            panel.add(new JLabel("日:"));
+            panel.add(dayBox);
+        }
+
+        return panel;
     }
 
     // プレースホルダーを設定するメソッド
