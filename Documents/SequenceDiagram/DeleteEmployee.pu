@@ -1,4 +1,4 @@
-@startuml eleteEmployee
+@startuml DeleteEmployee
 
 actor User
 participant メインスレッド
