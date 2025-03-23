@@ -44,6 +44,12 @@ class EngineerStartYear {
 + getEngineerStartYear(): Year // 開始年を取得するメソッド
 }
 
+' 従業員が扱える言語のリストを管理するクラス。
+class Languages {
+- languages : List<String>  // 従業員が扱える言語のリスト
++ getLanguages(): List<String> // 扱える言語を取得するメソッド
+}
+
 ' 従業員の技術スキルを評価するクラス。
 class TechnicalSkill {
 - technicalSkill : double // 技術スキルの評価（プルダウン五段階評価）
@@ -94,6 +100,7 @@ class EmployeeInfo {
 - birthDate : BirthDate // 生年月日
 - joinDate : JoinDate // 入社日
 - engineerStartYear : EngineerStartYear // エンジニアとしての開始年
+- languages : Languages // 扱える言語
 - technicalSkill : TechnicalSkill // 技術スキル
 - attitude : Attitude // 態度
 - communicationSkill : CommunicationSkill // コミュニケーションスキル
@@ -102,7 +109,7 @@ class EmployeeInfo {
 - trainingHistory : TrainingHistory // 研修履歴
 - remarks : Remarks // 備考
 
-+ EmployeeInfo(employeeId: EmployeeId, name: Name, phonetic: Phonetic, birthDate: BirthDate, joinDate: JoinDate, engineerStartYear: EngineerStartYear, technicalSkill: TechnicalSkill, attitude: Attitude, communicationSkill: CommunicationSkill, leadership: Leadership, career: Career, trainingHistory: TrainingHistory, remarks: Remarks) // コンストラクタ
++ EmployeeInfo(employeeId: EmployeeId, name: Name, phonetic: Phonetic, birthDate: BirthDate, joinDate: JoinDate, engineerStartYear: EngineerStartYear, languages: Languages, technicalSkill: TechnicalSkill, attitude: Attitude, communicationSkill: CommunicationSkill, leadership: Leadership, career: Career, trainingHistory: TrainingHistory, remarks: Remarks) // コンストラクタ
 + toString(): String // オブジェクトの文字列表現を返すためのメソッド
 }
 
@@ -238,6 +245,7 @@ Phonetic ..> EmployeeInfoValidator : uses
 EmployeeId ..> EmployeeInfoValidator : uses
 BirthDate ..> EmployeeInfoValidator : uses
 EngineerStartYear ..> EmployeeInfoValidator : uses
+Languages ..> EmployeeInfoValidator : uses
 TechnicalSkill ..> EmployeeInfoValidator : uses
 Attitude ..> EmployeeInfoValidator : uses
 CommunicationSkill ..> EmployeeInfoValidator : uses
