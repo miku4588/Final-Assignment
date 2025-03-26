@@ -1,4 +1,4 @@
-import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 /**
  * Mainクラス
@@ -11,18 +11,20 @@ public class MainApp {
      */
     public static void main(String[] args) {
         
-        // EmployeeInfoLoggerクラスのメソッドを呼び出す
-        EmployeeInfoLogger.createLogFolder(); // ログフォルダの存在確認
-        EmployeeInfoLogger.logOutput("アプリを起動しました。"); // ログファイル存在確認
+        // ロガーを取得　ログフォルダとログファイル存在確認
+        Logger logger = Logger.getLogger("EmployeeInfoLogger");
+        EmployeeInfoLogger.createLogFolder();
 
-        EmployeeManager manager = new EmployeeManager(); // EmployeeManager初期化
+        // データリスト初期化
+        EmployeeManager manager = new EmployeeManager();
 
         // サブスレッド内でデータ読み込み
         Thread threadLoadData = new Thread(() -> {
-
-            // 💡EmployeeManagerクラスの中でデータCSV存在チェック なければ作成、あればデータを読み込む
-            // 💡EmployeeManagerクラスにデータ保存先のパス（DATA_FOLDER）、データCSVのファイル名（CSV_FILE）の定数を用意
-
+            // ロックを取得
+            // データCSVフォルダ存在確認　フォルダがなければ作成
+            // データCSV存在確認　CSVがなければ作成
+            // 1行ずつデータを読み込む（読み込みの際にバリデーションチェックなど実施）
+            // ロックを開放　成功か失敗か返す
         }, "DataLoader");
 
         threadLoadData.start();
@@ -31,7 +33,7 @@ public class MainApp {
         try {
             threadLoadData.join();
         } catch (InterruptedException e) {
-            ErrorHandler.logException(e); // サブスレッドに割り込みが入るとInterruptedExceptionエラーを吐くのでキャッチ
+            EmployeeInfoLogger.logException(e); // サブスレッドに割り込みが入るとInterruptedExceptionエラーを吐くのでキャッチ
         }
 
         ListViewUI listView = new ListViewUI(); // ListViewUI初期化
