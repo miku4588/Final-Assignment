@@ -11,9 +11,9 @@ public class MainApp {
      */
     public static void main(String[] args) {
         
-        // ロガーを取得　ログフォルダとログファイル存在確認
-        Logger logger = Logger.getLogger("EmployeeInfoLogger");
-        EmployeeInfoLogger.createLogFolder();
+        // ロガーを初期化
+        EmployeeInfoLogger logger = EmployeeInfoLogger.getInstance();
+        logger.logOutput("アプリを起動しました。");
 
         // データリスト初期化
         EmployeeManager manager = new EmployeeManager();
@@ -33,7 +33,7 @@ public class MainApp {
         try {
             threadLoadData.join();
         } catch (InterruptedException e) {
-            EmployeeInfoLogger.logException(e); // サブスレッドに割り込みが入るとInterruptedExceptionエラーを吐くのでキャッチ
+            logger.logException(e); // サブスレッドに割り込みが入るとInterruptedExceptionエラーを吐くのでキャッチ
         }
 
         ListViewUI listView = new ListViewUI(); // ListViewUI初期化
