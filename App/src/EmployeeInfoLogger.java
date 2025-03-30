@@ -13,7 +13,7 @@ public class EmployeeInfoLogger {
     // ロガーのインスタンス
     private static EmployeeInfoLogger instance;
     // ログ保存先フォルダ
-    private static final String LOG_FOLDER = "../EmployeeInfoApp/Log";
+    private static final String LOG_FOLDER = "App/log";
 
     /**
      * コンストラクタ
@@ -24,6 +24,7 @@ public class EmployeeInfoLogger {
 
     /**
      * インスタンスを返すメソッド
+     * 
      * @return instance
      */
     public static EmployeeInfoLogger getInstance() {
@@ -38,19 +39,20 @@ public class EmployeeInfoLogger {
      */
     public void createLogFolder() {
         try {
-            // ログフォルダを作成
+            // ログフォルダとログファイルを作成
+            // createDirectories…対象のフォルダが既存の場合、作成されない
+            // logHandler…対象のファイルが既存の場合、作成されない
             Files.createDirectories(Paths.get(LOG_FOLDER));
             String logFile = LOG_FOLDER + "/EmployeeInfoApp-" + LocalDate.now() + ".log";
             FileHandler logHandler = new FileHandler(logFile, true);
 
             // ログのフォーマットを設定
-            System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tF %1$tT %4$s %2$s %5$s%6$s%n");
+            System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tF %1$tT %4$s %5$s %n");
             logHandler.setFormatter(new SimpleFormatter());
             LOGGER.addHandler(logHandler);
-            
+
         } catch (IOException e) {
-            // スタックトレースを文字列で取得してログに出力する
-            logException(e);  // クラス図では引数が例外のみ。メッセージも渡す？
+            logException(e); 
         }
     }
 
@@ -58,7 +60,15 @@ public class EmployeeInfoLogger {
      * ログを出力するメソッド
      */
     public void logOutput(String message) {
-        // ログファイル存在チェック　なければ作成、あればログを残す
+        // スタックトレースを取得
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        // スタックトレースからクラス名とメソッド名を取得（要素の3番目以降にある）
+        String className = stackTrace[2].getClassName();
+        String methodName = stackTrace[2].getMethodName();
+
+        // String.formatメソッドでStringのフォーマットを変えて渡す
+        // %sが3つ…うしろの3つの引数が並んだかたちになる
+        LOGGER.info(String.format("%s [%s.%s]", message, className, methodName));
     }
 
     /**
@@ -68,6 +78,6 @@ public class EmployeeInfoLogger {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         exception.printStackTrace(pw);
-        // LOGGER.severe(String.format("%s¥n%s", errorString, sw.toString()));  💡ここ確認中！！
+        LOGGER.severe(String.format("%s%n%s", "例外が発生しました。", sw.toString()));
     }
 }

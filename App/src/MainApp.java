@@ -1,5 +1,3 @@
-import java.util.logging.Logger;
-
 /**
  * Mainクラス
  */
@@ -32,8 +30,8 @@ public class MainApp {
         // サブスレッドの終了を待機
         try {
             threadLoadData.join();
-        } catch (InterruptedException e) {
-            logger.logException(e); // サブスレッドに割り込みが入るとInterruptedExceptionエラーを吐くのでキャッチ
+        } catch (Exception e) {
+            logger.logException(e); // サブスレッドに割り込みが入るとエラーを吐くのでキャッチ
         }
 
         ListViewUI listView = new ListViewUI(); // ListViewUI初期化
