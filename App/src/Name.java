@@ -12,13 +12,13 @@ public class Name extends EmployeeInfoValidator {
      * 名前のバリデーションを行い、無効な場合は例外をスロー。
      *
      * @param name 名前（従業員の名前）
-     * @throws IllegalArgumentException 名前が無効な場合（1〜20文字の範囲内で英数字のみ許可）
+     * @throws IllegalArgumentException 名前が無効な場合（1〜20文字の範囲内で、日本語や英数字のみ許可）
      */
     public Name(String name) {
         // 名前が有効かどうかをチェック
         if (!validateInput(name)) {
             // 無効な場合は例外を投げる
-            throw new IllegalArgumentException("名前は1〜20文字の範囲で、英数字のみ使用できます。");
+            throw new IllegalArgumentException("名前は1〜20文字の範囲で、日本語または英数字のみ使用できます。");
         }
         // 名前が有効ならフィールドにセット
         this.name = name;
@@ -26,15 +26,19 @@ public class Name extends EmployeeInfoValidator {
 
     /**
      * 名前のバリデーションを行います。
-     * 名前は1〜20文字以内で、英数字のみ許可。
+     * 名前は1〜20文字以内で、日本語（漢字・ひらがな・カタカナ）または英数字のみ許可。
      *
      * @param name 名前（従業員の名前）
-     * @return 名前が有効かどうか（1〜20文字の範囲で、英数字のみの場合は true）
+     * @return 名前が有効かどうか（1〜20文字の範囲で、日本語または英数字のみの場合は true）
      */
     @Override
     protected boolean validateInput(String name) {
-        // 名前が1〜20文字の範囲内で、英数字のみ使用されているかチェック
-        return validateLength(name, 1, 20) && validateCharacterType(name, "ALPHANUMERIC");
+        // 長さチェック（1〜20文字）
+        if (!validateLength(name, 1, 20)) {
+            return false;
+        }
+        // 使用可能な文字チェック（日本語または英数字のみ）
+        return name.matches("^[\\p{L}\\p{N}]+$");
     }
 
     /**
