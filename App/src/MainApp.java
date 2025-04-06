@@ -29,7 +29,7 @@ public class MainApp {
 
         // サブスレッドの終了を待機
         try {
-            threadLoadData.join();
+            threadLoadData.join(10000);
         } catch (Exception e) {
             logger.logException(e); // サブスレッドに割り込みが入るとエラーを吐くのでキャッチ
         }
@@ -37,3 +37,18 @@ public class MainApp {
         ListViewUI listView = new ListViewUI(); // ListViewUI初期化
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+// サブスレッドの終了を完全に待機できるよう修正する！！！
+// エラー時、logExceptionしか動かないようになってるからエラーハンドラーも書く！！！！！！！
+// データ読み込みのメソッドも書く！！！！！！！！！！
