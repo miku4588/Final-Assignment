@@ -5,37 +5,29 @@
 class Phonetic extends EmployeeInfoValidator {
     private String phonetic;
 
-    /**
-     * 氏名カナを設定するコンストラクタ。
-     * 氏名カナのバリデーションを行い、無効な場合は例外をスロー。
-     *
-     * @param phonetic 氏名カナ（全角カナ・全角スペース・半角スペースのみ使用可能）
-     * @throws IllegalArgumentException 氏名カナが無効な場合（1〜30文字の範囲内でのみ使用可能）
-     */
     public Phonetic(String phonetic) {
         if (!validateInput(phonetic)) {
-            throw new IllegalArgumentException("氏名カナは1〜30文字の範囲で、全角カナ・スペースのみ使用できます。");
+            throw new IllegalArgumentException("氏名カナは1〜30文字の範囲で、全角カナ・全角スペース・半角スペースのみ使用できます。");
         }
         this.phonetic = phonetic;
     }
 
-    /**
-     * 氏名カナのバリデーションを行う。
-     * 氏名カナは1〜30文字以内で、全角カナ・全角スペース・半角スペースのみ使用可能。
-     *
-     * @param phonetic 氏名カナ
-     * @return 氏名カナが有効かどうか（1〜30文字の範囲内で全角カナ・スペースのみならtrue）
-     */
     @Override
     protected boolean validateInput(String phonetic) {
-        return validateLength(phonetic, 1, 30) && validateCharacterType(phonetic, "KANA");
+        return validateLength(phonetic, 1, 30) && validateCharacterType(phonetic);
     }
 
     /**
-     * 氏名カナを取得するメソッド。
+     * 氏名カナのキャラクタータイプをバリデートするメソッド。
+     * 全角カナ・全角スペース・半角スペースのみ許可。
      *
-     * @return 氏名カナ
+     * @param phonetic 氏名カナ
+     * @return 有効な文字タイプの場合はtrue
      */
+    private boolean validateCharacterType(String phonetic) {
+        return phonetic.matches("[\\u30A0-\\u30FF\\u3000\\s]{1,30}"); // 全角カナ、全角スペース、半角スペース
+    }
+
     public String getPhonetic() {
         return phonetic;
     }
