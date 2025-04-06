@@ -7,7 +7,6 @@ import java.util.logging.*;
  * ログを取るクラス
  */
 public class EmployeeInfoLogger {
-
     // ロガー
     private static final Logger LOGGER = Logger.getLogger("EmployeeInfoLogger");
     // ロガーのインスタンス
@@ -41,7 +40,7 @@ public class EmployeeInfoLogger {
         try {
             // ログフォルダとログファイルを作成
             // createDirectories…対象のフォルダが既存の場合、作成されない
-            // logHandler…対象のファイルが既存の場合、作成されない
+            // FileHandler…対象のファイルが既存の場合、作成されない
             Files.createDirectories(Paths.get(LOG_FOLDER));
             String logFile = LOG_FOLDER + "/EmployeeInfoApp-" + LocalDate.now() + ".log";
             FileHandler logHandler = new FileHandler(logFile, true);

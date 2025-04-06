@@ -36,7 +36,8 @@ public class CSVHandler {
             // Languages languages = new Languages("HTML");
 
             
-            if (data[0].equals("\uFEFFNo.") ||
+            if (data[0].equals("\uFEFFNo.") || // BOM付きの場合先頭に\uFEFFが付く
+                data[0].equals("No.") ||
                 data[0].equals("入力例") ||
                 data[0].equals("ここから入力↓↓↓↓↓↓↓↓↓↓")) {
 

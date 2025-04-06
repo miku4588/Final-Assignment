@@ -1,7 +1,16 @@
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.*;
+import java.util.logging.FileHandler;
+
 /**
  * Mainクラス
  */
 public class MainApp {
+    // データ保存先フォルダ
+    private static final String DATA_FOLDER = "App/data";
+    // データCSV
+    private static final String DATA_FILE = DATA_FOLDER + "/EmployeeInfo.csv";
 
     /**
      * Mainメソッド
@@ -18,10 +27,17 @@ public class MainApp {
 
         // サブスレッド内でデータ読み込み
         Thread threadLoadData = new Thread(() -> {
-            // ロックを取得
-            // データCSVフォルダ存在確認　フォルダがなければ作成
-            // データCSV存在確認　CSVがなければ作成
-            // 1行ずつデータを読み込む（読み込みの際にバリデーションチェックなど実施）
+            // try-catchの前にロックを取得
+            try {
+                // データCSV保存フォルダとCSVファイル存在確認
+                // createDirectories…対象のフォルダが既存の場合、作成されない
+                // FileHandler…対象のファイルが既存の場合、作成されない？？？
+                Files.createDirectories(Paths.get(DATA_FOLDER));
+                FileHandler fileHandler = new FileHandler(DATA_FILE);
+                CSVHandler.readCSV(DATA_FILE);
+            } catch (IOException e) {
+                logger.logException(e);
+            }
             // ロックを開放　成功か失敗か返す
         }, "DataLoader");
 
