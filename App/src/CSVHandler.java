@@ -117,7 +117,6 @@ public class CSVHandler {
                         communicationSkill,leadership,career,
                         trainingHistory,remarks //,languages
                     );
-                    System.err.println(employeeInfo);
                     employees.add(employeeInfo);
                 } else {
                     ErrorHandler.handleError(String.join("\n", errorMessages));
