@@ -1,13 +1,35 @@
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * エラー処理をするクラス
+ *EmployeeInfoのリストを管理するクラス
  */
 public class EmployeeManager {
+
+    // EmployeeInfoのList
+    private List<EmployeeInfo> employeeList = new ArrayList<>();
+
 
     /**
      * コンストラクタ
      */
-    public EmployeeManager() {
-        // 💡データCSV存在チェック なければ作成、あればデータを読み込む
-        // 💡データ保存先のパス（DATA_FOLDER）、データCSVのファイル名（CSV_FILE）の定数を用意
+    public EmployeeManager(List<EmployeeInfo> employeeList) {
+        this.employeeList = employeeList;
+    }
+
+    /**
+     * ゲッター
+     * @return employeeList
+     */
+    public List<EmployeeInfo> getEmployeeList() {
+        return employeeList;
+    }
+
+    /**
+     * セッター
+     * @param employeeList
+     */
+    public void setEmployeeList(List<EmployeeInfo> employeeList) {
+        this.employeeList = employeeList;
     }
 }

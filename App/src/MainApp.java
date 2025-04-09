@@ -26,8 +26,8 @@ public class MainApp {
         EmployeeInfoLogger logger = EmployeeInfoLogger.getInstance();
         logger.logOutput("アプリを起動しました。");
 
-        // データリスト初期化
-        EmployeeManager manager = new EmployeeManager(); // 💡ここあとで書きます～
+        // EmployeeManagerを初期化
+        EmployeeManager manager = new EmployeeManager(new ArrayList<>()); // EmployeeManagerを空のデータで初期化
 
         // サブスレッド内でデータ読み込み
         Thread threadLoadData = new Thread(() -> {
@@ -41,16 +41,8 @@ public class MainApp {
                     if (file.createNewFile()) { 
                         logger.logOutput("データファイルを新規作成しました。");
                     } else {
-                        logger.logOutput("データファイルの読み込み開始。");                        
-                        List<EmployeeInfo> employees = new ArrayList<>(); // 💡この2行ちょっと変わるかも
-                        employees = CSVHandler.readCSV(DATA_FILE); // 💡この2行ちょっと変わるかも
-                        /////////デバッグ用/////////
-                        System.out.println();
-                        System.out.println("読み込んだデータ");
-                        System.out.println(employees);
-                        System.out.println("読み込んだデータここまで");
-                        System.out.println();
-                        /////////デバッグ用おわり/////////
+                        List<EmployeeInfo> employeeList = CSVHandler.readCSV(DATA_FILE);
+                        manager.setEmployeeList(employeeList);
                     }
                 } catch (IOException e) {
                     logger.logException(e);
@@ -62,12 +54,21 @@ public class MainApp {
         threadLoadData.start();
 
         // サブスレッドの終了を待機
+        // サブスレッドに割り込みが入るとエラーを吐くのでキャッチ
         try {
             threadLoadData.join(10000);
         } catch (Exception e) {
-            logger.logException(e); // サブスレッドに割り込みが入るとエラーを吐くのでキャッチ
+            logger.logException(e);
             // 💡エラーハンドラーも呼ぶ
         }
+
+        /////////デバッグ用/////////
+        System.out.println();
+        System.out.println("メインクラス　読み込んだデータ");
+        System.out.println(manager.getEmployeeList());
+        System.out.println("読み込んだデータここまで");
+        System.out.println();
+        /////////デバッグ用おわり/////////
 
         ListViewUI listView = new ListViewUI(); // ListViewUI初期化
     }
