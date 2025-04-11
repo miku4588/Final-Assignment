@@ -10,7 +10,7 @@
             "request": "launch",
             "mainClass": "MainApp",
             "cwd": "${workspaceFolder}",
-            "console": "internalConsole"
+            "console": "integratedTerminal"
         }
     ]
 }
