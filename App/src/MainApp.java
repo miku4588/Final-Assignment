@@ -8,8 +8,10 @@ import java.util.List;
  * Mainクラス
  */
 public class MainApp {
+    // ロガーを初期化
+    private static final EmployeeInfoLogger LOGGER = EmployeeInfoLogger.getInstance();
     // データ保存先フォルダ
-    private static final String DATA_FOLDER = "App/data";
+    private static final String DATA_FOLDER = "data";
     // データCSV
     private static final String DATA_FILE = DATA_FOLDER + "/EmployeeInfo.csv";
     // ロック用のオブジェクト
@@ -21,34 +23,14 @@ public class MainApp {
      * @param args
      */
     public static void main(String[] args) {
-
-        // ロガーを初期化
-        EmployeeInfoLogger logger = EmployeeInfoLogger.getInstance();
-        logger.logOutput("アプリを起動しました。");
-
-        // EmployeeManagerを初期化
-        EmployeeManager manager = new EmployeeManager(new ArrayList<>()); // EmployeeManagerを空のデータで初期化
+        LOGGER.logOutput("アプリを起動しました。");
+        
+        // 💡今はここで初期化してますがメンバとして定数で持ってた方がよさそうなら修正します。
+        EmployeeManager manager = new EmployeeManager(new ArrayList<>()); 
 
         // サブスレッド内でデータ読み込み
         Thread threadLoadData = new Thread(() -> {
-            // ロックを取得
-            synchronized (LOCK) {
-                try {
-                    Files.createDirectories(Paths.get(DATA_FOLDER)); // createDirectories…対象のフォルダが既存の場合、作成されない
-                    File file = new File(DATA_FILE);
-
-                    // createNewFile…ファイル作成が成功したらtrue、ファイルが既存ならfalseを返す
-                    if (file.createNewFile()) { 
-                        logger.logOutput("データファイルを新規作成しました。");
-                    } else {
-                        List<EmployeeInfo> employeeList = CSVHandler.readCSV(DATA_FILE);
-                        manager.setEmployeeList(employeeList);
-                    }
-                } catch (IOException e) {
-                    logger.logException(e);
-                    // 💡エラーハンドラーも呼ぶ
-                }
-            }
+            loadData(manager);
         }, "DataLoader");
 
         threadLoadData.start();
@@ -58,8 +40,8 @@ public class MainApp {
         try {
             threadLoadData.join(10000);
         } catch (Exception e) {
-            logger.logException(e);
-            // 💡エラーハンドラーも呼ぶ
+            LOGGER.logException("データ読み込み処理中に予期せぬエラーが発生しました。", e);
+            ErrorHandler.handleError("データ読み込み処理中に予期せぬエラーが発生しました。");
         }
 
         /////////デバッグ用/////////
@@ -71,5 +53,33 @@ public class MainApp {
         /////////デバッグ用おわり/////////
 
         ListViewUI listView = new ListViewUI(); // ListViewUI初期化
+    }
+
+    private static void loadData(EmployeeManager manager) {
+        // ロックを取得
+        synchronized (LOCK) {
+            try {
+                Files.createDirectories(Paths.get(DATA_FOLDER)); // createDirectories…対象のフォルダが既存の場合、作成されない
+                File file = new File(DATA_FILE);
+
+                // createNewFile…ファイル作成が成功したらtrue、ファイルが既存ならfalseを返す
+                if (file.createNewFile()) { 
+                    LOGGER.logOutput("データファイルを新規作成しました。");
+                } else {
+                    List<EmployeeInfo> employeeList = new ArrayList<>();
+                    CSVHandler csvHandler = new CSVHandler(DATA_FILE);
+
+                    if(csvHandler.isValidCSV()) {
+                        employeeList = csvHandler.readCSV();
+                        manager.setEmployeeList(employeeList);
+                    } else {
+                        ErrorHandler.handleError("データファイルが不正のため、データを読み込めませんでした。\nログファイルを確認してください。");
+                    }
+                }
+            } catch (IOException e) {
+                LOGGER.logException("データフォルダまたはデータファイルの作成に失敗しました。", e);
+                // 💡エラーハンドラーも呼ぶ
+            }
+        }
     }
 }

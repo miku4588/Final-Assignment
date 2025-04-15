@@ -12,7 +12,7 @@ public class EmployeeInfoLogger {
     // ロガーのインスタンス
     private static EmployeeInfoLogger instance;
     // ログ保存先フォルダ
-    private static final String LOG_FOLDER = "App/log";
+    private static final String LOG_FOLDER = "log";
 
     /**
      * コンストラクタ
@@ -51,7 +51,7 @@ public class EmployeeInfoLogger {
             LOGGER.addHandler(logHandler);
 
         } catch (IOException e) {
-            logException(e); 
+            logException("ログフォルダまたはログファイルの作成に失敗しました。", e); 
         }
     }
 
@@ -73,10 +73,10 @@ public class EmployeeInfoLogger {
     /**
      * 例外を記録するメソッド
      */
-    public void logException(Exception exception) {
+    public void logException(String message, Exception exception) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         exception.printStackTrace(pw);
-        LOGGER.severe(String.format("%s%n%s", "例外が発生しました。", sw.toString()));
+        LOGGER.severe(String.format("%s%n%s", message, sw.toString()));
     }
 }
