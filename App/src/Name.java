@@ -36,9 +36,10 @@ public class Name extends EmployeeInfoValidator {
         // 長さチェック（1〜20文字）
         if (!validateLength(name, 1, 20)) {
             return false;
+        } else {
+            return true;
         }
     }
-
     /**
      * 名前を取得するメソッド。
      *
