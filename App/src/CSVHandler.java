@@ -57,7 +57,7 @@ public class CSVHandler {
      */
     public boolean isValidCSV() {
         parseLineList = parseLine(); // 指定されたCSVデータの中身をListに格納
-        LOGGER.logOutput(filePath + "　CCSVファイルのバリデーションチェック開始。");
+        LOGGER.logOutput(filePath + "　CSVファイルのバリデーションチェック開始。");
 
         for (String line : parseLineList) {
             String[] data = line.split(","); // カンマで区切って各フィールドを取り出す
@@ -69,6 +69,7 @@ public class CSVHandler {
 
             } else {
                 for(int i = 1; i < data.length; i++) {
+                    // switchはアロー構文で書くとbreakなくてもswitch抜けられる！
                     switch (i) {
                         case 1 -> System.out.println("💡追加・更新の項目は実装途中です！");
                         case 2 -> addErrorMessage(data[0], data[i], EmployeeId::new);

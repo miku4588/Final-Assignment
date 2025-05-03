@@ -9,7 +9,6 @@ public class EmployeeManager {
     // EmployeeInfoのList
     private List<EmployeeInfo> employeeList = new ArrayList<>();
 
-
     /**
      * コンストラクタ
      */

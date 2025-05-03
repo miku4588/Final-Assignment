@@ -50,9 +50,11 @@ public class MainApp {
         System.out.println(manager.getEmployeeList());
         System.out.println("読み込んだデータここまで");
         System.out.println();
+        System.out.println("読み込んだデータの0個目の要素の氏名は…");
+        System.out.println(manager.getEmployeeList().get(0).getName());
         /////////デバッグ用おわり/////////
 
-        ListViewUI listView = new ListViewUI(); // ListViewUI初期化
+        ListViewUI listView = new ListViewUI(manager); // ListViewUI初期化
     }
 
     private static void loadData(EmployeeManager manager) {
