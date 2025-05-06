@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
@@ -8,13 +9,15 @@ public class CSVHandler {
     // ロガーを取得
     private static final EmployeeInfoLogger LOGGER = EmployeeInfoLogger.getInstance();
     // CSVファイルのパス
-    private String filePath = null;
+    private String filePath;
     // CSVの形を整えて読み込めるようにしたString型のList
     private List<String> parseLineList;
     // バリデーションエラー時のメッセージ
     private List<String> errorMessages = new ArrayList<>();
     // EmployeeInfoのList
-    private static List<EmployeeInfo> employeeList = new ArrayList<>(); // EmployeeInfoのList
+    private List<EmployeeInfo> employeeList = new ArrayList<>(); // EmployeeInfoのList
+    // テンプレートファイルのヘッダー
+    private List<String> templateHeaders = new ArrayList<>();
     
     /**
      * コンストラクタ
@@ -22,19 +25,37 @@ public class CSVHandler {
      */
     public CSVHandler(String filePath) {
         this.filePath = filePath;
+        generateTemplateHeaders();
     }
     
     /**
-     * CSVファイルを読み込み、EmployeeInfo型に変換したデータのListを返す<p>
-     * 💡先にisValidCSVを実行してから呼び出してください！
+     * CSVファイルを読み込み、EmployeeInfo型に変換したデータのListを返す
      * @return EmployeeInfoのList
      */
     public List<EmployeeInfo> readCSV() {
         LOGGER.logOutput(filePath + "　CSVファイル読み込み開始。");
+
+        // データCSVを読み込むときはバリデーションチェックのみ実施
+        if(filePath == "data/EmployeeInfo.csv") {
+            if(isValidCSV()) {
+                loadCSV(); // CSV読み込み処理
+                LOGGER.logOutput("CSVファイル読み込み完了。");
+                return employeeList;
+            } else {
+                ErrorHandler.handleError("データファイルが不正のため、データを読み込めませんでした。\nログファイルを確認してください。");
+                return null;
+            }
+        }
         
-        if(parseLineList == null) {
-            LOGGER.logOutput("バリデーションチェックが実施されていません。");
-            ErrorHandler.handleError("バリデーションチェックが実施されていません。");
+        // データCSV以外を読み込むときは3つのチェックを実施
+        if(!isCSVFile()) {
+            ErrorHandler.handleError("CSVファイルを選択してください。");
+            return null;
+        } else if(!isSameLayout()) {
+            ErrorHandler.handleError("CSVファイルのレイアウトが異なります。");
+            return null;
+        } else if(!isValidCSV()) {
+            ErrorHandler.handleError(String.join("\n", errorMessages)); // バリデーションエラーを一覧で出力
             return null;
         } else {
             loadCSV(); // CSV読み込み処理
@@ -43,6 +64,11 @@ public class CSVHandler {
         }
     }
 
+    /**
+     * CSVファイルに社員データを書き込む
+     * @param employeeList
+     */
+//💡💡💡💡💡まだできてません
     public void writeCSV(List<EmployeeInfo> employeeList) {
         LOGGER.logOutput(filePath + "　CSVファイルへの書き込みを開始。");
         // 💡ファイルハンドラーか何かでCSVファイルを開いて直接書き込む
@@ -50,9 +76,90 @@ public class CSVHandler {
         System.out.println("ここまだ出来てないです！！！");
         LOGGER.logOutput("CSVファイルへの書き込み完了。");
     }
+
+    /**
+     * ヘッダー行を作成する
+     */
+    private void generateTemplateHeaders() {
+        templateHeaders.add("No.,追加・更新,社員ID,氏名,氏名カナ,生年月日,入社年月,エンジニア開始年,技術力,受講態度,コミュニケーション能力,リーダーシップ,経歴,研修の受講歴,備考,扱える言語,,");
+        templateHeaders.add("入力例,更新,F10000,大阪 太郎,オオサカ タロウ,2000/01/01,2024/04,2020,3.5,4,5,4.5,\"これは経歴です。\n" +
+                            "改行も可能です。\",\"これは研修の受講歴です。\n" +
+                            "改行も可能です。\",\"これは備考です。\n" +
+                            "改行も可能です。\",HTML,CSS,Java");
+        templateHeaders.add("ここから入力↓↓↓↓↓↓↓↓↓↓,,,,,,,,,,,,,,,,,");
+    }
+
+    /**
+     * CSVファイルかどうか判定する
+     * @param filePath
+     * @return CSVファイルならtrue、CSVではないならfalse
+     */
+    public boolean isCSVFile() {
+        LOGGER.logOutput(filePath + "　CSVファイルのファイル形式チェック開始");
+        if (filePath == null || filePath.isEmpty()) {
+            LOGGER.logOutput("ファイル形式チェックNG。ファイルが選択されていません。");
+            return false;
+        } else if(!filePath.toLowerCase().endsWith(".csv")) {
+            LOGGER.logOutput("ファイル形式チェックNG。異なる形式のファイルが選択されています。");
+            return false;
+        }
+        LOGGER.logOutput("ファイル形式チェックOK。");
+        return true;
+    }
+
+    /**
+     * ヘッダーがテンプレートファイルと一致するか判定する
+     * @return
+     */
+    public boolean isSameLayout() {
+        LOGGER.logOutput(filePath + "CSVファイルのレイアウトチェック開始。");
+
+        // targetHeadersに最初の3行を格納
+        List<String> targetHeaders = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            for(int i = 0; i < 3; i++) {
+                line = br.readLine();
+                targetHeaders.add(line);
+            }
+        } catch(IOException e) {
+//💡💡💡💡💡エラー処理考え中
+            LOGGER.logException(filePath, e);
+            ErrorHandler.handleError("CSVファイルのレイアウトチェックに失敗しました。");
+            return false;
+        }
+
+        // targetHeadersが3行なければfalse
+        if (targetHeaders.size() < 3) {
+            LOGGER.logOutput("レイアウトチェックNG。ヘッダーがテンプレートと異なります。");
+            return false;
+        }
+
+        // 1～3行目をテンプレートと比較
+        for(int i = 0; i < 3; i++) {
+
+            // 「扱える言語」より後ろを除外
+            String templateLine = templateHeaders.get(i);
+            String targetLine = targetHeaders.get(i);
+            String[] templateColumns = templateLine.split(",", -1);
+            String[] targetColumns = targetLine.split(",", -1);
+
+            // 各行の各フィールドをひとつずつ比較
+            // 0番目（No.）から15番目（扱える言語）まで
+            for (int j = 0; j < 15; j++) {
+                if (!templateColumns[j].equals(targetColumns[j])) {
+                    LOGGER.logOutput("レイアウトチェックNG。ヘッダーがテンプレートと異なります。");
+                    return false;
+                }
+            }
+        }
+
+        LOGGER.logOutput("レイアウトチェックOK。");
+        return true;
+    }
     
     /**
-     * 読み込んだCSVがバリデーションチェックOKかどうか
+     * 読み込んだCSVがバリデーションチェックOKかどうか判定する
      * @return OKならtrue、NGならfalse
      */
     public boolean isValidCSV() {

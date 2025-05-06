@@ -38,10 +38,10 @@ public class MainApp {
         // サブスレッドの終了を待機
         // サブスレッドに割り込みが入るとエラーを吐くのでキャッチ
         try {
-            threadLoadData.join(10000);
-        } catch (Exception e) {
-            LOGGER.logException("データ読み込み処理中に予期せぬエラーが発生しました。", e);
-            ErrorHandler.handleError("データ読み込み処理中に予期せぬエラーが発生しました。");
+            threadLoadData.join();
+        } catch (InterruptedException e) {
+            LOGGER.logException("データ読み込み処理中に割り込みが発生しました。", e);
+            ErrorHandler.handleError("データ読み込み処理中に割り込みが発生しました。");
         }
 
         /////////デバッグ用/////////
@@ -55,6 +55,7 @@ public class MainApp {
         /////////デバッグ用おわり/////////
 
         ListViewUI listView = new ListViewUI(manager); // ListViewUI初期化
+        CSVUI csvUI = new CSVUI();
     }
 
     private static void loadData(EmployeeManager manager) {
@@ -68,14 +69,12 @@ public class MainApp {
                 if (file.createNewFile()) { 
                     LOGGER.logOutput("データファイルを新規作成しました。");
                 } else {
-                    List<EmployeeInfo> employeeList = new ArrayList<>();
                     CSVHandler csvHandler = new CSVHandler(DATA_FILE);
-
-                    if(csvHandler.isValidCSV()) {
-                        employeeList = csvHandler.readCSV();
-                        manager.setEmployeeList(employeeList);
+                    List<EmployeeInfo> employeeList = csvHandler.readCSV();
+                    if(employeeList.isEmpty()) {
+// 💡💡💡💡💡社員がひとりもいない場合の処理考え中
                     } else {
-                        ErrorHandler.handleError("データファイルが不正のため、データを読み込めませんでした。\nログファイルを確認してください。");
+                        manager.setEmployeeList(employeeList);
                     }
                 }
             } catch (IOException e) {
