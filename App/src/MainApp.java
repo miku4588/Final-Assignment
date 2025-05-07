@@ -55,7 +55,6 @@ public class MainApp {
         /////////デバッグ用おわり/////////
 
         ListViewUI listView = new ListViewUI(manager); // ListViewUI初期化
-        CSVUI csvUI = new CSVUI();
     }
 
     private static void loadData(EmployeeManager manager) {
