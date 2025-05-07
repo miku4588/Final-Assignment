@@ -1,5 +1,7 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
@@ -71,9 +73,22 @@ public class CSVHandler {
 //💡💡💡💡💡まだできてません
     public void writeCSV(List<EmployeeInfo> employeeList) {
         LOGGER.logOutput(filePath + "　CSVファイルへの書き込みを開始。");
-        // 💡ファイルハンドラーか何かでCSVファイルを開いて直接書き込む
-        // 💡書き込みが終わったらデータリストを更新するためにデータCSV読み込んでリストを返す？？？
-        System.out.println("ここまだ出来てないです！！！");
+
+        // BufferedWriterとFileWriterで1行ずつ書き込む
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            // 1. ヘッダーを書き込む（例: id,name,age,skill）
+            writer.write("id,name,age,skill");
+            writer.newLine();
+
+            // 2. 各EmployeeInfoのデータを書き込む
+            for (EmployeeInfo employee : employeeList) {
+                writer.write(employee.toString());
+                writer.newLine();
+            }
+            LOGGER.logOutput("CSVファイルへの書き込み完了。");
+        } catch (IOException e) {
+            LOGGER.logOutput("CSVファイルへの書き込み失敗: " + e.getMessage());
+        }
         LOGGER.logOutput("CSVファイルへの書き込み完了。");
     }
 
@@ -257,7 +272,13 @@ public class CSVHandler {
      */
     private <T> void addErrorMessage(String row, String input, Function<String, T> constructor) {
         try {
-            constructor.apply(input);
+
+            if(input.isEmpty()) {
+                constructor.apply("");
+
+            } else {
+                constructor.apply(input);
+            }
         } catch (IllegalArgumentException e) {
             errorMessages.add(row + "行目　" + e.getMessage());
         }
@@ -278,23 +299,23 @@ public class CSVHandler {
 
             } else {
                 //　各項目のインスタンスを作成
-                EmployeeId employeeId = new EmployeeId(data[2]);
-                Name name = new Name(data[3]);
-                Phonetic phonetic = new Phonetic(data[4]);
-                BirthDate birthDate = new BirthDate(data[5]);
-                JoinYearMonth joinYearMonth = new JoinYearMonth(data[6]);
-                EngineerStartYear engineerStartYear = new EngineerStartYear(data[7]);
-                // TechnicalSkill technicalSkill = new TechnicalSkill(data[8]);
-                // Attitude attitude = new Attitude(data[9]);
-                // CommunicationSkill communicationSkill = new CommunicationSkill(data[10]);
-                // Leadership leadership = new Leadership(data[11]);
+                EmployeeId employeeId = new EmployeeId(getValueOrEmpty(data, 2));
+                Name name = new Name(getValueOrEmpty(data, 3));
+                Phonetic phonetic = new Phonetic(getValueOrEmpty(data, 4));
+                BirthDate birthDate = new BirthDate(getValueOrEmpty(data, 5));
+                JoinYearMonth joinYearMonth = new JoinYearMonth(getValueOrEmpty(data, 6));
+                EngineerStartYear engineerStartYear = new EngineerStartYear(getValueOrEmpty(data, 7));
+                // TechnicalSkill technicalSkill = new TechnicalSkill(getValueOrEmpty(data, 8));
+                // Attitude attitude = new Attitude(getValueOrEmpty(data, 9));
+                // CommunicationSkill communicationSkill = new CommunicationSkill(getValueOrEmpty(data, 10));
+                // Leadership leadership = new Leadership(getValueOrEmpty(data, 11));
                 TechnicalSkill technicalSkill = new TechnicalSkill(1);
                 Attitude attitude = new Attitude(1);
                 CommunicationSkill communicationSkill = new CommunicationSkill(1);
                 Leadership leadership = new Leadership(1);
-                Career career = new Career(data[12]);
-                TrainingHistory trainingHistory = new TrainingHistory(data[13]);
-                Remarks remarks = new Remarks(data[14]);
+                Career career = new Career(getValueOrEmpty(data, 12));
+                TrainingHistory trainingHistory = new TrainingHistory(getValueOrEmpty(data, 13));
+                Remarks remarks = new Remarks(getValueOrEmpty(data, 14));
                 // Languages languages = null;
 
                 // EmployeeInfoのインスタンスを作成
@@ -309,5 +330,22 @@ public class CSVHandler {
                 employeeList.add(employeeInfo);
             }
         }
+    }
+
+    /**
+     * 値がなければ""（空文字）を返す
+     * @param data parseLineListをカンマで区切ったList
+     * @param index Listの何個目の要素か
+     * @return 値そのまま返すか、空文字を返す
+     */
+    private String getValueOrEmpty(String[] data, int index) {
+
+        // indexがデータの外にない、かつ値がnullでない、かつ長さが0でない
+        if (data.length > index && data[index] != null && !data[index].trim().isEmpty()) {
+            return data[index];
+        }
+
+        // 上記の条件以外の場合は必ず空文字を返す
+        return "";
     }
 }

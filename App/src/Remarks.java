@@ -28,7 +28,7 @@ class Remarks extends EmployeeInfoValidator {
      */
     @Override
     protected boolean validateInput(String remarks) {
-        return validateLength(remarks, 1, 500);
+        return validateLength(remarks, 0, 500);
     }
 
     /**
