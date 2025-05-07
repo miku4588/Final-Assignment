@@ -14,6 +14,8 @@ public class MainApp {
     private static final String DATA_FOLDER = "data";
     // データCSV
     private static final String DATA_FILE = DATA_FOLDER + "/EmployeeInfo.csv";
+    // 社員データを管理するインスタンス
+    public static EmployeeManager manager = new EmployeeManager(new ArrayList<>()); 
     // ロック用のオブジェクト
     private static final Object LOCK = new Object();
 
@@ -25,8 +27,6 @@ public class MainApp {
     public static void main(String[] args) {
         LOGGER.logOutput("アプリを起動しました。");
         
-        // 💡今はここで初期化してますがメンバとして定数で持ってた方がよさそうなら修正します。
-        EmployeeManager manager = new EmployeeManager(new ArrayList<>()); 
 
         // サブスレッド内でデータ読み込み
         Thread threadLoadData = new Thread(() -> {
