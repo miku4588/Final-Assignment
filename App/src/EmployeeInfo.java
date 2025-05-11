@@ -1,6 +1,8 @@
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 /**
  * 社員情報の各項目をまとめるクラス
@@ -19,7 +21,7 @@ class EmployeeInfo {
     private Career career;
     private TrainingHistory trainingHistory;
     private Remarks remarks;
-    // private Languages Languages;
+    private Languages languages;
 
     public EmployeeInfo(EmployeeId employeeId,
                         Name name,
@@ -33,8 +35,8 @@ class EmployeeInfo {
                         Leadership leadership,
                         Career career,
                         TrainingHistory trainingHistory,
-                        Remarks remarks //,
-                        // Languages languages
+                        Remarks remarks,
+                        Languages languages
                         ) {
         this.employeeId = employeeId;
         this.name = name;
@@ -49,7 +51,7 @@ class EmployeeInfo {
         this.career = career;
         this.trainingHistory = trainingHistory;
         this.remarks = remarks;
-        // this.Languages = languages;
+        this.languages = languages;
     }
 
     @Override
@@ -57,8 +59,8 @@ class EmployeeInfo {
         return employeeId.getEmployeeId() + "," +
                name.getName() + "," +
                phonetic.getPhonetic() + "," +
-               birthDate.getBirthDate() + "," +
-               joinYearMonth.getJoinYearMonth() + "," +
+               birthDate.getBirthDate().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")) + "," +
+               joinYearMonth.getJoinYearMonth().format(DateTimeFormatter.ofPattern("yyyy/MM")) + "," +
                engineerStartYear.getEngineerStartYear() + "," +
                technicalSkill.getTechnicalSkill() + "," +
                attitude.getAttitude() + "," +
@@ -66,8 +68,8 @@ class EmployeeInfo {
                leadership.getLeadership() + "," +
                career.getCareer() + "," +
                trainingHistory.getTrainingHistory() + "," +
-               remarks.getRemarks(); // + "," +
-            //    languages.getLanguages();
+               remarks.getRemarks() + "," +
+               String.join(",", languages.getLanguages());
     }
 
     /**
@@ -174,5 +176,11 @@ class EmployeeInfo {
         return remarks.getRemarks();
     }
 
-    
+    /**
+     * EmployeeInfoからLanguagesを取得
+     * @return
+     */
+    public List<String> getLanguages() {
+        return languages.getLanguages();
+    }
 }

@@ -13,7 +13,7 @@ public class MainApp {
     // データ保存先フォルダ
     private static final String DATA_FOLDER = "data";
     // データCSV
-    private static final String DATA_FILE = DATA_FOLDER + "/EmployeeInfo.csv";
+    public static final String DATA_FILE = DATA_FOLDER + "/EmployeeInfo.csv";
     // 社員データを管理するインスタンス
     public static EmployeeManager manager = new EmployeeManager(new ArrayList<>()); 
     // ロック用のオブジェクト
@@ -44,7 +44,6 @@ public class MainApp {
         }
 
         ListViewUI listView = new ListViewUI(manager); // ListViewUI初期化
-        CSVUI csvui = new CSVUI();
     }
 
     private static void loadData() {

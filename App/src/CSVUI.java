@@ -103,14 +103,16 @@ public class CSVUI extends JFrame {
      * @param updateCount 更新人数
      */
 // 💡💡💡💡💡追加・更新の人数カウントやってません
-    private void showConfirmDialog(int addCount, int updateCount) {
+    private void showConfirmDialog(int addCount, int updateCount, List<EmployeeInfo> employeeList) {
         confirmDialog.setLayout(new BorderLayout(10,10));
 
         // 中央パネル…確認メッセージ
         JPanel messagePanel = new JPanel();
         messagePanel.add(new JLabel(
+            // "<html>まだ保存は完了していません。<br>下記の内容で保存してよろしいですか？<br>" +
+            // "追加" + addCount + "名、更新" + updateCount + "名</html>"
             "<html>まだ保存は完了していません。<br>下記の内容で保存してよろしいですか？<br>" +
-            "追加" + addCount + "名、更新" + updateCount + "名</html>"
+            "追加○○名、更新○○名<br>（このダイアログまだ作成中です）</html>"
         ));
         confirmDialog.add(messagePanel, BorderLayout.CENTER);
 
@@ -123,7 +125,7 @@ public class CSVUI extends JFrame {
         // 確定ボタンにイベントリスナーを追加
         confirmButton.addActionListener(e -> {
             confirmDialog.dispose();// 確認ダイアログ終了
-            saveCSV(filePathField.getText()); // 保存処理
+            saveCSV(employeeList); // 保存処理
         });
 
         // 戻るボタンにイベントリスナーを追加
@@ -160,17 +162,15 @@ public class CSVUI extends JFrame {
             // ロックを取得
             synchronized (LOCK) {
                 CSVHandler csvHandler = new CSVHandler(filePath); // CSVハンドラー
-                List<EmployeeInfo> importEmployeeList = new ArrayList<>(); // 読み込む社員データのリスト
+                List<EmployeeInfo> importEmployeeList = csvHandler.readCSV(); // 読み込む社員データのリスト
 // 💡💡💡💡💡readCSVでエラーが出た場合の動き要検討
-                importEmployeeList = csvHandler.readCSV();
-
                 if(importEmployeeList.isEmpty()) {
                     ErrorHandler.handleError("データが1件もありません。");
                     return;
                 } else {
                     SwingUtilities.invokeLater(() -> {
 // 💡💡💡💡💡追加・更新の人数カウント実装したら修正
-                        showConfirmDialog(1, 2);
+                        showConfirmDialog(1, 2, importEmployeeList);
                     });
                 }
             }
@@ -181,19 +181,23 @@ public class CSVUI extends JFrame {
     }
 
 // 💡💡💡💡💡データ保存処理まだできてません
-    private void saveCSV(String filePath) {
+    private void saveCSV(List<EmployeeInfo> employeeList) {
         
         // 処理中メッセージ表示
         initializeProsessingDialog("保存中です。");
         SwingUtilities.invokeLater(() -> prosessingDialog.setVisible(true));
-        
-        // ロックを取得
-        synchronized (LOCK) {
 
+        // サブスレッド生成
+        Thread threadSaveData = new Thread(() -> {
+            // ロックを取得
+            synchronized (LOCK) {
+                CSVHandler csvHandler = new CSVHandler(MainApp.DATA_FILE); // CSVハンドラー
+                csvHandler.writeCSV(employeeList);
+            }
+        }, "CSVsaver");
 
-            CSVHandler csvHandler = new CSVHandler(filePath); // CSVハンドラー
-            List<EmployeeInfo> importEmployeeList = new ArrayList<>(); // 読み込んだ社員データのリスト
-            importEmployeeList = csvHandler.readCSV();
-        }
+        threadSaveData.start(); // サブスレッド開始
+        SwingUtilities.invokeLater(() -> prosessingDialog.dispose());
+        SwingUtilities.invokeLater(() -> showSavedDialog());
     }    
 }

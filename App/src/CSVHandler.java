@@ -77,26 +77,29 @@ public class CSVHandler {
      * CSVファイルに社員データを書き込む
      * @param employeeList
      */
-//💡💡💡💡💡まだできてません
     public void writeCSV(List<EmployeeInfo> employeeList) {
         LOGGER.logOutput(filePath + "　CSVファイルへの書き込みを開始。");
 
         // BufferedWriterとFileWriterで1行ずつ書き込む
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-            // 1. ヘッダーを書き込む（例: id,name,age,skill）
-            writer.write("id,name,age,skill");
+// 💡💡💡💡💡要変更！！！！
+            // ヘッダーを生成
+            writer.write(templateHeaders.get(0));
+            writer.newLine();
+            writer.write(templateHeaders.get(1));
+            writer.newLine();
+            writer.write(templateHeaders.get(2));
             writer.newLine();
 
             // 2. 各EmployeeInfoのデータを書き込む
-            for (EmployeeInfo employee : employeeList) {
-                writer.write(employee.toString());
+            for (int i = 0; i < employeeList.size(); i++) {
+                writer.write(i + 1 + ",-," + employeeList.get(i).toString());
                 writer.newLine();
             }
             LOGGER.logOutput("CSVファイルへの書き込み完了。");
         } catch (IOException e) {
             LOGGER.logOutput("CSVファイルへの書き込み失敗: " + e.getMessage());
         }
-        LOGGER.logOutput("CSVファイルへの書き込み完了。");
     }
 
     /**
@@ -140,7 +143,7 @@ public class CSVHandler {
      * @return
      */
     public boolean isSameLayout() {
-        LOGGER.logOutput(filePath + "CSVファイルのレイアウトチェック開始。");
+        LOGGER.logOutput(filePath + "　CSVファイルのレイアウトチェック開始。");
 
         // targetHeadersに最初の3行を格納
         List<String> targetHeaders = new ArrayList<>();
@@ -303,6 +306,7 @@ public class CSVHandler {
                 constructor.apply(input);
             }
         } catch (Exception e) {
+            System.out.println(input);
             errorMessages.add(row + "行目　" + e.getMessage());
         }
     }
@@ -339,14 +343,20 @@ public class CSVHandler {
                 Career career = new Career(getValueOrEmpty(data, 12));
                 TrainingHistory trainingHistory = new TrainingHistory(getValueOrEmpty(data, 13));
                 Remarks remarks = new Remarks(getValueOrEmpty(data, 14));
-                // Languages languages = null;
+                Languages languages = new Languages();
+
+                // 扱える言語のListを作成
+                int languagesCount = data.length;
+                for(int i = 15; i < languagesCount; i++) {
+                    languages.addLanguage(data[i]);
+                }
 
                 // EmployeeInfoのインスタンスを作成
                 EmployeeInfo employeeInfo = new EmployeeInfo(
                 employeeId,name,phonetic,birthDate,joinYearMonth,
                 engineerStartYear,technicalSkill,attitude,
                 communicationSkill,leadership,career,
-                trainingHistory,remarks //,languages
+                trainingHistory,remarks, languages
                 );
 
                 // employeeListに追加
