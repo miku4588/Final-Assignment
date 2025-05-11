@@ -26,11 +26,10 @@ public class MainApp {
      */
     public static void main(String[] args) {
         LOGGER.logOutput("アプリを起動しました。");
-        
 
         // サブスレッド内でデータ読み込み
         Thread threadLoadData = new Thread(() -> {
-            loadData(manager);
+            loadData();
         }, "DataLoader");
 
         threadLoadData.start();
@@ -44,20 +43,11 @@ public class MainApp {
             ErrorHandler.handleError("データ読み込み処理中に割り込みが発生しました。");
         }
 
-        /////////デバッグ用/////////
-        System.out.println();
-        System.out.println("メインクラス　読み込んだデータ");
-        System.out.println(manager.getEmployeeList());
-        System.out.println("読み込んだデータここまで");
-        System.out.println();
-        System.out.println("読み込んだデータの0個目の要素の氏名は…");
-        System.out.println(manager.getEmployeeList().get(0).getName());
-        /////////デバッグ用おわり/////////
-
         ListViewUI listView = new ListViewUI(manager); // ListViewUI初期化
+        CSVUI csvui = new CSVUI();
     }
 
-    private static void loadData(EmployeeManager manager) {
+    private static void loadData() {
         // ロックを取得
         synchronized (LOCK) {
             try {
@@ -70,15 +60,13 @@ public class MainApp {
                 } else {
                     CSVHandler csvHandler = new CSVHandler(DATA_FILE);
                     List<EmployeeInfo> employeeList = csvHandler.readCSV();
-                    if(employeeList.isEmpty()) {
-// 💡💡💡💡💡社員がひとりもいない場合の処理考え中
-                    } else {
+                    if(employeeList != null) {
                         manager.setEmployeeList(employeeList);
                     }
                 }
             } catch (IOException e) {
                 LOGGER.logException("データフォルダまたはデータファイルの作成に失敗しました。", e);
-                // 💡エラーハンドラーも呼ぶ
+                ErrorHandler.handleError("データフォルダまたはデータファイルの作成に失敗しました。");
             }
         }
     }

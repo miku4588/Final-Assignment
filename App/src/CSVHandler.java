@@ -50,14 +50,21 @@ public class CSVHandler {
         }
         
         // データCSV以外を読み込むときは3つのチェックを実施
-        if(!isCSVFile()) {
-            ErrorHandler.handleError("CSVファイルを選択してください。");
+        try {
+            if(!isCSVFile()) {
+                ErrorHandler.handleError("UTF-8(BOM付き)形式のCSVファイルを選択してください。");
+                return null;
+            }
+        } catch (Exception e) {
+            LOGGER.logException("CSVファイルの形式チェック中にエラーが発生しました。", e);
+            ErrorHandler.handleError("CSVファイルの形式チェック中にエラーが発生しました。");
             return null;
-        } else if(!isSameLayout()) {
+        }
+        if(!isSameLayout()) {
             ErrorHandler.handleError("CSVファイルのレイアウトが異なります。");
             return null;
         } else if(!isValidCSV()) {
-            ErrorHandler.handleError(String.join("\n", errorMessages)); // バリデーションエラーを一覧で出力
+            ErrorHandler.handleError(String.join("\n", errorMessages)); // 改行(\n)で区切ってerrorMessagesを羅列
             return null;
         } else {
             loadCSV(); // CSV読み込み処理
@@ -97,10 +104,7 @@ public class CSVHandler {
      */
     private void generateTemplateHeaders() {
         templateHeaders.add("No.,追加・更新,社員ID,氏名,氏名カナ,生年月日,入社年月,エンジニア開始年,技術力,受講態度,コミュニケーション能力,リーダーシップ,経歴,研修の受講歴,備考,扱える言語,,");
-        templateHeaders.add("入力例,更新,F10000,大阪 太郎,オオサカ タロウ,2000/01/01,2024/04,2020,3.5,4,5,4.5,\"これは経歴です。\n" +
-                            "改行も可能です。\",\"これは研修の受講歴です。\n" +
-                            "改行も可能です。\",\"これは備考です。\n" +
-                            "改行も可能です。\",HTML,CSS,Java");
+        templateHeaders.add("入力例,更新,F10000,大阪 太郎,オオサカ タロウ,2000/01/01,2024/04,2020,3.5,4,5,4.5,これは経歴です。改行も可能です。,これは研修の受講歴です。改行も可能です。,これは備考です。改行も可能です。,HTML,CSS,Java");
         templateHeaders.add("ここから入力↓↓↓↓↓↓↓↓↓↓,,,,,,,,,,,,,,,,,");
     }
 
@@ -109,7 +113,7 @@ public class CSVHandler {
      * @param filePath
      * @return CSVファイルならtrue、CSVではないならfalse
      */
-    public boolean isCSVFile() {
+    public boolean isCSVFile() throws IOException {
         LOGGER.logOutput(filePath + "　CSVファイルのファイル形式チェック開始");
         if (filePath == null || filePath.isEmpty()) {
             LOGGER.logOutput("ファイル形式チェックNG。ファイルが選択されていません。");
@@ -117,6 +121,15 @@ public class CSVHandler {
         } else if(!filePath.toLowerCase().endsWith(".csv")) {
             LOGGER.logOutput("ファイル形式チェックNG。異なる形式のファイルが選択されています。");
             return false;
+        } else {
+            // BufferedeReaderはIOExceptionを投げる場合があるので、呼び出し元でキャッチする。
+            BufferedReader br = Files.newBufferedReader(Paths.get(filePath));
+            String firstLine = br.readLine();
+            br.close();
+            if (firstLine == null || !firstLine.startsWith("\uFEFF")) {
+                LOGGER.logOutput("BOM付きUTF-8以外のCSVファイルが指定されました。");
+                return false;
+            }
         }
         LOGGER.logOutput("ファイル形式チェックOK。");
         return true;
@@ -135,11 +148,16 @@ public class CSVHandler {
             String line;
             for(int i = 0; i < 3; i++) {
                 line = br.readLine();
+
+                // 先頭が"\uFEFF"だった場合は1文字目を削除
+                if (line != null && line.startsWith("\uFEFF")) {
+                    line = line.substring(1);
+                }
+
                 targetHeaders.add(line);
             }
         } catch(IOException e) {
-//💡💡💡💡💡エラー処理考え中
-            LOGGER.logException(filePath, e);
+            LOGGER.logException("CSVファイルのレイアウトチェックに失敗しました。", e);
             ErrorHandler.handleError("CSVファイルのレイアウトチェックに失敗しました。");
             return false;
         }
@@ -156,16 +174,9 @@ public class CSVHandler {
             // 「扱える言語」より後ろを除外
             String templateLine = templateHeaders.get(i);
             String targetLine = targetHeaders.get(i);
-            String[] templateColumns = templateLine.split(",", -1);
-            String[] targetColumns = targetLine.split(",", -1);
-
-            // 各行の各フィールドをひとつずつ比較
-            // 0番目（No.）から15番目（扱える言語）まで
-            for (int j = 0; j < 15; j++) {
-                if (!templateColumns[j].equals(targetColumns[j])) {
-                    LOGGER.logOutput("レイアウトチェックNG。ヘッダーがテンプレートと異なります。");
-                    return false;
-                }
+            if (!templateLine.equals(targetLine)) {
+                LOGGER.logOutput("レイアウトチェックNG。ヘッダーがテンプレートと異なります。");
+                return false;
             }
         }
 
@@ -184,12 +195,14 @@ public class CSVHandler {
         for (String line : parseLineList) {
             String[] data = line.split(","); // カンマで区切って各フィールドを取り出す
 
-            if (data[0].equals("\uFEFFNo.") || // BOM付きの場合先頭に\uFEFFが付く
-                data[0].equals("No.") ||
+            if (data[0].equals("No.") ||
                 data[0].equals("入力例") ||
                 data[0].equals("ここから入力↓↓↓↓↓↓↓↓↓↓")) {
 
             } else {
+                // 先にLanguagesのインスタンスを用意
+                Languages languages = new Languages();
+                
                 for(int i = 1; i < data.length; i++) {
                     // switchはアロー構文で書くとbreakなくてもswitch抜けられる！
                     switch (i) {
@@ -211,8 +224,12 @@ public class CSVHandler {
                         case 12 -> addErrorMessage(data[0], data[i], Career::new);
                         case 13 -> addErrorMessage(data[0], data[i], TrainingHistory::new);
                         case 14 -> addErrorMessage(data[0], data[i], Remarks::new);
-                        // case 15 -> addErrorMessage(data[0], data[i], Languages::new);
-                        default -> errorMessages.add(data[0] + "行目　" + i + "列目　「" + data[i] + "」の項目名が見つかりません。");
+                        default -> {
+                            Boolean isValidLanguage = languages.addLanguage(data[i]);
+                            if(!isValidLanguage) {
+                                errorMessages.add(data[0] + "行目　「" + data[i] + "」は有効な言語ではありません。");                                
+                            }
+                        }
                     }
                 }
             }
@@ -223,7 +240,7 @@ public class CSVHandler {
             return true;
         } else {
             LOGGER.logOutput("バリデーションチェックNG。");
-            LOGGER.logOutput(String.join("\n", errorMessages)); // 改行(\n)で区切ってerrorMessagesを羅列
+            LOGGER.logOutput("バリデーションエラーの一覧を出力します。\n" + String.join("\n", errorMessages)); // 改行(\n)で区切ってerrorMessagesを羅列
             return false;
         }
     }
@@ -244,10 +261,17 @@ public class CSVHandler {
 
             // ファイルを1行ずつ読み込み
             while ((line = br.readLine()) != null) {
-                buffer.append(line); // 現在の行をバッファに追加
-                int quoteCount = buffer.toString().replaceAll("[^\"]", "").length(); // ダブルクォートの数をカウント
 
-                // ダブルクォートが偶数個かどうか
+                // 先頭が"\uFEFF"だった場合は1文字目を削除
+                if (line != null && line.startsWith("\uFEFF")) {
+                    line = line.substring(1);
+                }
+
+                // 現在の行をバッファに追加して、ダブルクォートの数をカウント
+                buffer.append(line); 
+                int quoteCount = buffer.toString().replaceAll("[^\"]", "").length();
+
+                // ダブルクォートが偶数個ならListへ、そうでないなら次の行を連結
                 if (quoteCount % 2 == 0) {
                     parseLineList.add(buffer.toString()); // Listに格納
                     buffer.setLength(0); // バッファを空にする
@@ -272,14 +296,13 @@ public class CSVHandler {
      */
     private <T> void addErrorMessage(String row, String input, Function<String, T> constructor) {
         try {
-
             if(input.isEmpty()) {
                 constructor.apply("");
 
             } else {
                 constructor.apply(input);
             }
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             errorMessages.add(row + "行目　" + e.getMessage());
         }
     }
