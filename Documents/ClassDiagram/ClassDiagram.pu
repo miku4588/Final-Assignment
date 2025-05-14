@@ -155,19 +155,10 @@ class ErrorHandler {
 }
 
 ' 検索条件を保持するクラス。
-class SortCriteria {
+class SearchCriteria {
 - searchCriteria : Map<String, String> // 検索条件を保持するマップ
 + keywordSearch(): void // キーワードによる検索を実行するメソッド
 + filterSearch(): void // フィルタによる検索を実行するメソッド
-}
-
-' ソート条件を保持するクラス。
-class SearchCriteria {
-- sortCriteria : Map<String, Boolean> // ソート条件を保持するマップ
-+ sortByEmployeeId(): void // 従業員IDでソートするメソッド
-+ sortByName(): void // 名前でソートするメソッド
-+ sortByAge(): void // 年齢でソートするメソッド
-+ sortByYears(): void // 経験年数でソートするメソッド
 }
 
 ' 従業員情報を表示するUIクラス。
@@ -256,7 +247,6 @@ Remarks ..> EmployeeInfoValidator : uses
 JoinYearMonth ..> EmployeeInfoValidator : uses
 
 ' SortCriteriaとSearchCriteriaの関係
-SortCriteria ..> EmployeeManager : uses
 SearchCriteria ..> EmployeeManager : uses
 
 @enduml
