@@ -1,6 +1,9 @@
 import java.util.List;
 import java.util.Iterator;
 
+/**
+ * 社員情報を削除するクラス
+ */
 public class EmployeeDeleter {
     private CSVHandler csvHandler;
 
@@ -8,23 +11,26 @@ public class EmployeeDeleter {
         this.csvHandler = csvHandler;
     }
 
-    // 社員情報を削除する
+    /**
+     * 指定された社員IDの社員情報を削除します。
+     * 
+     * @param employeeId 削除対象の社員ID
+     * @return 削除が成功した場合はtrue、失敗した場合はfalse
+     */
     public boolean deleteEmployee(String employeeId) {
-        // EmployeeInfoリストを取得
-        List<EmployeeInfo> employeeList = csvHandler.readCSV();
+        List<EmployeeInfo> employeeList = csvHandler.readCSV(null);
         if (employeeList == null) {
             System.out.println("社員情報の読み込みに失敗しました。");
             return false;
         }
-
-        // 指定された社員IDに該当する社員情報を削除
+    
         for (Iterator<EmployeeInfo> iterator = employeeList.iterator(); iterator.hasNext();) {
             EmployeeInfo employee = iterator.next();
-            if (employee.getEmployeeId().equals(employeeId)) {
+            if (employee.getEmployeeId() != null && employee.getEmployeeId().equals(employeeId)) {
                 iterator.remove();
                 System.out.println("社員情報が削除されました。");
-
-                // 更新後にCSVファイルに書き込み
+    
+                // 書き込み処理を実行するが、戻り値は確認できない
                 csvHandler.writeCSV(employeeList);
                 return true;
             }
@@ -32,4 +38,5 @@ public class EmployeeDeleter {
         System.out.println("社員IDが見つかりませんでした。");
         return false;
     }
+    
 }
