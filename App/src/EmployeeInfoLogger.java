@@ -12,12 +12,12 @@ public class EmployeeInfoLogger {
     // ロガーのインスタンス
     private static EmployeeInfoLogger instance;
     // ログ保存先フォルダ
-    private static final String LOG_FOLDER = "log";
+    private static final String LOG_FOLDER = System.getProperty("user.dir") + File.separator + "log";
 
     /**
      * コンストラクタ
      */
-    private EmployeeInfoLogger() {
+    private EmployeeInfoLogger() { // privateにしてインスタンス化禁止にする。
         createLogFolder();
     }
 
@@ -36,7 +36,7 @@ public class EmployeeInfoLogger {
     /**
      * ログ保存先フォルダを作るメソッド
      */
-    public void createLogFolder() {
+    private void createLogFolder() {
         try {
             // ログフォルダとログファイルを作成
             // createDirectories…対象のフォルダが既存の場合、作成されない

@@ -2,7 +2,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.util.List;
-import java.util.ArrayList;
 
 // JFrameを継承する
 public class CSVUI extends JFrame {
@@ -68,7 +67,7 @@ public class CSVUI extends JFrame {
             // 読み込むボタンにイベントリスナーを追加
             importButton.addActionListener(e -> {
                 if (filePathField.getText().isEmpty()) { // ファイル選択されてない場合
-                    ErrorHandler.handleError("ファイルを選択してください。");
+                    ErrorHandler.showErrorDialog("ファイルを選択してください。");
                     return; // イベントリスナーから抜ける
                 }
                 loadCSV(filePathField.getText()); // CSV読み込み処理
@@ -162,10 +161,10 @@ public class CSVUI extends JFrame {
             // ロックを取得
             synchronized (LOCK) {
                 CSVHandler csvHandler = new CSVHandler(filePath); // CSVハンドラー
-                List<EmployeeInfo> importEmployeeList = csvHandler.readCSV(); // 読み込む社員データのリスト
+                List<EmployeeInfo> importEmployeeList = csvHandler.readCSV(false); // 読み込む社員データのリスト
 // 💡💡💡💡💡readCSVでエラーが出た場合の動き要検討
                 if(importEmployeeList.isEmpty()) {
-                    ErrorHandler.handleError("データが1件もありません。");
+                    ErrorHandler.showErrorDialog("データが1件もありません。");
                     return;
                 } else {
                     SwingUtilities.invokeLater(() -> {

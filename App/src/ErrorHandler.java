@@ -12,7 +12,7 @@ public class ErrorHandler {
     /**
      * エラーメッセージを処理するメソッド
      */
-    public static void handleError(String errorMessage){
+    public static void showErrorDialog(String errorMessage){
 
         // 画面に関する処理はinvokeLaterで囲むのが安全
         SwingUtilities.invokeLater(() -> {

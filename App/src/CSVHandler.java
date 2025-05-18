@@ -20,6 +20,8 @@ public class CSVHandler {
     private List<EmployeeInfo> employeeList = new ArrayList<>(); // EmployeeInfoのList
     // テンプレートファイルのヘッダー
     private List<String> templateHeaders = new ArrayList<>();
+    // ロック用のオブジェクト
+    private static final Object LOCK = new Object();
     
     /**
      * コンストラクタ
@@ -30,21 +32,23 @@ public class CSVHandler {
         generateTemplateHeaders();
     }
     
+
     /**
      * CSVファイルを読み込み、EmployeeInfo型に変換したデータのListを返す
      * @return EmployeeInfoのList
      */
-    public List<EmployeeInfo> readCSV() {
+    public List<EmployeeInfo> readCSV(Boolean isEmployeeInfoCSV) {
         LOGGER.logOutput(filePath + "　CSVファイル読み込み開始。");
 
         // データCSVを読み込むときはバリデーションチェックのみ実施
-        if(filePath == "data/EmployeeInfo.csv") {
+        if(isEmployeeInfoCSV) {
+
             if(isValidCSV()) {
                 loadCSV(); // CSV読み込み処理
                 LOGGER.logOutput("CSVファイル読み込み完了。");
                 return employeeList;
             } else {
-                ErrorHandler.handleError("データファイルが不正のため、データを読み込めませんでした。\nログファイルを確認してください。");
+                ErrorHandler.showErrorDialog("データファイルが不正のため、読み込めませんでした。\nログファイルを確認してください。");
                 return null;
             }
         }
@@ -52,19 +56,19 @@ public class CSVHandler {
         // データCSV以外を読み込むときは3つのチェックを実施
         try {
             if(!isCSVFile()) {
-                ErrorHandler.handleError("UTF-8(BOM付き)形式のCSVファイルを選択してください。");
+                ErrorHandler.showErrorDialog("UTF-8(BOM付き)形式のCSVファイルを選択してください。");
                 return null;
             }
         } catch (Exception e) {
             LOGGER.logException("CSVファイルの形式チェック中にエラーが発生しました。", e);
-            ErrorHandler.handleError("CSVファイルの形式チェック中にエラーが発生しました。");
+            ErrorHandler.showErrorDialog("CSVファイルの形式チェック中にエラーが発生しました。");
             return null;
         }
         if(!isSameLayout()) {
-            ErrorHandler.handleError("CSVファイルのレイアウトが異なります。");
+            ErrorHandler.showErrorDialog("CSVファイルのレイアウトが異なります。");
             return null;
         } else if(!isValidCSV()) {
-            ErrorHandler.handleError(String.join("\n", errorMessages)); // 改行(\n)で区切ってerrorMessagesを羅列
+            ErrorHandler.showErrorDialog(String.join("\n", errorMessages)); // 改行(\n)で区切ってerrorMessagesを羅列
             return null;
         } else {
             loadCSV(); // CSV読み込み処理
@@ -72,6 +76,7 @@ public class CSVHandler {
             return employeeList;
         }
     }
+
 
     /**
      * CSVファイルに社員データを書き込む
@@ -102,6 +107,7 @@ public class CSVHandler {
         }
     }
 
+
     /**
      * ヘッダー行を作成する
      */
@@ -110,6 +116,7 @@ public class CSVHandler {
         templateHeaders.add("入力例,更新,F10000,大阪 太郎,オオサカ タロウ,2000/01/01,2024/04,2020,3.5,4,5,4.5,これは経歴です。改行も可能です。,これは研修の受講歴です。改行も可能です。,これは備考です。改行も可能です。,HTML,CSS,Java");
         templateHeaders.add("ここから入力↓↓↓↓↓↓↓↓↓↓,,,,,,,,,,,,,,,,,");
     }
+
 
     /**
      * CSVファイルかどうか判定する
@@ -138,6 +145,7 @@ public class CSVHandler {
         return true;
     }
 
+
     /**
      * ヘッダーがテンプレートファイルと一致するか判定する
      * @return
@@ -161,7 +169,7 @@ public class CSVHandler {
             }
         } catch(IOException e) {
             LOGGER.logException("CSVファイルのレイアウトチェックに失敗しました。", e);
-            ErrorHandler.handleError("CSVファイルのレイアウトチェックに失敗しました。");
+            ErrorHandler.showErrorDialog("CSVファイルのレイアウトチェックに失敗しました。");
             return false;
         }
 
@@ -187,6 +195,7 @@ public class CSVHandler {
         return true;
     }
     
+
     /**
      * 読み込んだCSVがバリデーションチェックOKかどうか判定する
      * @return OKならtrue、NGならfalse
@@ -209,7 +218,7 @@ public class CSVHandler {
                 for(int i = 1; i < data.length; i++) {
                     // switchはアロー構文で書くとbreakなくてもswitch抜けられる！
                     switch (i) {
-                        case 1 -> System.out.println("💡追加・更新の項目は実装途中です！");
+                        case 1 -> System.out.println("・"); // 追加・更新
                         case 2 -> addErrorMessage(data[0], data[i], EmployeeId::new);
                         case 3 -> addErrorMessage(data[0], data[i], Name::new);
                         case 4 -> addErrorMessage(data[0], data[i], Phonetic::new);
@@ -220,10 +229,10 @@ public class CSVHandler {
                         // case 9 -> addErrorMessage(data[0], data[i], Attitude::new); // 引数がDouble型
                         // case 10 -> addErrorMessage(data[0], data[i], CommunicationSkill::new); // 引数がDouble型
                         // case 11 -> addErrorMessage(data[0], data[i], Leadership::new); // 引数がDouble型
-                        case 8 -> System.out.println("💡技術力の項目は実装途中です！"); // 引数がDouble型
-                        case 9 -> System.out.println("💡受講態度の項目は実装途中です！"); // 引数がDouble型
-                        case 10 -> System.out.println("💡コミュニケーション能力の項目は実装途中です！"); // 引数がDouble型
-                        case 11 -> System.out.println("💡リーダーシップの項目は実装途中です！"); // 引数がDouble型
+                        case 8 -> System.out.println("・"); // 技術力
+                        case 9 -> System.out.println("・"); // 受講態度
+                        case 10 -> System.out.println("・"); // コミュニケーション能力
+                        case 11 -> System.out.println("・"); // リーダーシップ
                         case 12 -> addErrorMessage(data[0], data[i], Career::new);
                         case 13 -> addErrorMessage(data[0], data[i], TrainingHistory::new);
                         case 14 -> addErrorMessage(data[0], data[i], Remarks::new);
@@ -247,6 +256,7 @@ public class CSVHandler {
             return false;
         }
     }
+
 
     /**
      * 指定されたCSVファイルの各行をListに格納する<p>
@@ -282,13 +292,18 @@ public class CSVHandler {
                     buffer.append("\n"); // 改行して行を連結
                 }
             }
+
+            if(parseLineList.size() == 1 && parseLineList.get(0) == "") {
+                parseLineList.remove(0);
+            }
         } catch (IOException e) {
-            ErrorHandler.handleError("CSVファイルの読み込み中にエラーが発生しました。\nログファイルを確認してください。");
+            ErrorHandler.showErrorDialog("CSVファイルの読み込み中にエラーが発生しました。\nログファイルを確認してください。");
             LOGGER.logException("CSVファイルの読み込み中にエラーが発生しました。", e);
         }
 
         return parseLineList;
     }
+
     
     /**
      * バリデーションエラーのメッセージを生成する
@@ -306,15 +321,20 @@ public class CSVHandler {
                 constructor.apply(input);
             }
         } catch (Exception e) {
-            System.out.println(input);
             errorMessages.add(row + "行目　" + e.getMessage());
         }
     }
+
 
     /**
      * parseLineListを読み込む
      */
     private void loadCSV() {
+
+        if (parseLineList.isEmpty()) {
+            LOGGER.logOutput("データが1件もないため読み込み処理を終了します。");
+            return;
+        }
     
         for (String line : parseLineList) {
             String[] data = line.split(","); // カンマで区切って各フィールドを取り出す
@@ -365,6 +385,7 @@ public class CSVHandler {
         }
     }
 
+    
     /**
      * 値がなければ""（空文字）を返す
      * @param data parseLineListをカンマで区切ったList
