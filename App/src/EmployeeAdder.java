@@ -1,3 +1,4 @@
+import java.awt.Container;
 import java.util.List;
 
 // 社員情報を追加する処理を行うクラス
@@ -17,7 +18,7 @@ public class EmployeeAdder {
      */
     public boolean addEmployee(EmployeeInfo newEmployee) {
         // CSVから現在の社員リストを読み込む
-        List<EmployeeInfo> employeeList = csvHandler.readCSV();
+        List<EmployeeInfo> employeeList = csvHandler.readCSV(null);
         if (employeeList == null) {
             // 読み込みに失敗した場合はエラーメッセージを出して終了
             showError("社員情報の読み込みに失敗しました。");
@@ -38,7 +39,7 @@ public class EmployeeAdder {
             return false;
         }
 
-        // ③ 問題がなければリストに追加してCSVに書き込み
+        // 問題がなければリストに追加してCSVに書き込み
         employeeList.add(newEmployee);
         csvHandler.writeCSV(employeeList);
 
@@ -66,5 +67,10 @@ public class EmployeeAdder {
     private void showError(String message) {
         System.out.println("エラー: " + message);
         // UIなら JOptionPane.showMessageDialog(null, message); にしてもOK
+    }
+
+    public Container getEmployeeList() {
+        // Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getEmployeeList'");
     }
 }
