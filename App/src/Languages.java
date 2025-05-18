@@ -1,19 +1,17 @@
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * 従業員が扱えるプログラミング言語のリストを管理し、バリデーションを行うクラス。
+ * ユーザーが任意のプログラミング言語を追加し、管理するクラス。
  */
-public class Languages extends EmployeeInfoValidator {
-    private List<String> languages; // プログラミング言語のリスト
-    public static final List<String> VALID_LANGUAGES = Arrays.asList("Java", "Python", "C++", "JavaScript"); // 有効な言語リスト
+public class Languages {
+    private Set<String> languages; // プログラミング言語のセット
 
     /**
      * コンストラクタ
      */
     public Languages() {
-        this.languages = new ArrayList<>(); // 空のリストを初期化
+        this.languages = new HashSet<>(); // 空のセットを初期化
     }
 
     /**
@@ -23,8 +21,8 @@ public class Languages extends EmployeeInfoValidator {
      * @return 追加成功なら true、失敗なら false
      */
     public boolean addLanguage(String language) {
-        if (validateInput(language) && VALID_LANGUAGES.contains(language)) {
-            languages.add(language); // 言語をリストに追加
+        if (language != null && !language.trim().isEmpty()) {
+            languages.add(language.trim()); // 言語をセットに追加（前後の空白をトリム）
             return true; // 追加成功
         }
         System.out.println("無効な言語です: " + language); // エラーメッセージ
@@ -34,25 +32,25 @@ public class Languages extends EmployeeInfoValidator {
     /**
      * 複数のプログラミング言語を一括追加するメソッド。
      *
-     * @param languagesList 追加するプログラミング言語のリスト
-     * @return 追加成功した言語のリスト
+     * @param languagesList 追加するプログラミング言語のセット
+     * @return 追加成功した言語のセット
      */
-    public List<String> addLanguages(List<String> languagesList) {
-        List<String> addedLanguages = new ArrayList<>(); // 追加成功した言語のリスト
+    public Set<String> addLanguages(Set<String> languagesList) {
+        Set<String> addedLanguages = new HashSet<>(); // 追加成功した言語のセット
         for (String language : languagesList) {
             if (addLanguage(language)) {
-                addedLanguages.add(language); // 追加成功した言語をリストに追加
+                addedLanguages.add(language); // 追加成功した言語をセットに追加
             }
         }
-        return addedLanguages; // 追加成功した言語のリストを返す
+        return addedLanguages; // 追加成功した言語のセットを返す
     }
 
     /**
-     * 扱えるプログラミング言語のリストを取得するメソッド。
+     * 扱えるプログラミング言語のセットを取得するメソッド。
      *
-     * @return プログラミング言語のリスト
+     * @return プログラミング言語のセット
      */
-    public List<String> getLanguages() {
-        return new ArrayList<>(languages); // 言語のリストを返す
+    public Set<String> getLanguages() {
+        return new HashSet<>(languages); // 言語のセットを返す
     }
 }
