@@ -10,11 +10,11 @@ class CommunicationSkill extends EmployeeInfoValidator {
      * @param communicationSkill コミュニケーションスキル評価（評価値）
      * @throws IllegalArgumentException 評価が1〜5の範囲外の場合
      */
-    public CommunicationSkill(double communicationSkill) {
+    public CommunicationSkill(String communicationSkill) {
         if (!validateInput(communicationSkill)) {
             throw new IllegalArgumentException("コミュニケーションスキル評価は1〜5の範囲でなければなりません。");
         }
-        this.communicationSkill = communicationSkill;
+        this.communicationSkill = Double.parseDouble(communicationSkill); // Stringをdoubleに変換
     }
 
     /**
@@ -23,9 +23,13 @@ class CommunicationSkill extends EmployeeInfoValidator {
      * @return コミュニケーションスキル評価が1〜5の範囲内かどうか
      */
     @Override
-    protected boolean validateInput(double communicationSkill) {
-        // コミュニケーションスキル評価は1〜5の範囲であることを確認
-        return communicationSkill >= 1 && communicationSkill <= 5;
+    protected boolean validateInput(String communicationSkill) {
+        try {
+            double value = Double.parseDouble(communicationSkill); // Stringをdoubleに変換
+            return value >= 1 && value <= 5; // 範囲をチェック
+        } catch (NumberFormatException e) {
+            return false; // 数値変換に失敗した場合は無効とする
+        }
     }
 
     /**
@@ -36,3 +40,4 @@ class CommunicationSkill extends EmployeeInfoValidator {
         return communicationSkill;
     }
 }
+
