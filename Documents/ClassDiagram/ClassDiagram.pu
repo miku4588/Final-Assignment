@@ -211,7 +211,6 @@ class CSVUI {
 
 ' エラーハンドリングと検索・ソートクラスの関係
 ListViewUI --> ErrorHandler : uses
-ListViewUI --> SortCriteria : uses
 ListViewUI --> SearchCriteria : uses
 
 ' クラス間の関係

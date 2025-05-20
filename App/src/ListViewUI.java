@@ -21,6 +21,8 @@ import javax.swing.table.TableRowSorter;
 public class ListViewUI {
     // 従業員情報
     private EmployeeManager manager;
+    // 件数表示
+    private JLabel countLabel;
     // フレーム
     private JFrame frame;
     // パネル
@@ -80,7 +82,7 @@ public class ListViewUI {
         });
 
         // 絞り込みボタン 🔴編集途中
-        sortButton = new JButton("絞り込み");
+        sortButton = new JButton("絞り込み検索");
         sortButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -159,7 +161,7 @@ public class ListViewUI {
         controlPanel.add(selectAllButton);
 
         // 選択解除
-        cancelAllButton = new JButton("全件解除");
+        cancelAllButton = new JButton("選択解除");
         cancelAllButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -173,9 +175,13 @@ public class ListViewUI {
         cancelAllButton.setEnabled(false);// チェックボックスが押されるまで非アクティブ
         controlPanel.add(cancelAllButton);
 
+        //件数表示
+        countLabel = new JLabel();
+        controlPanel.add(countLabel);
+
 
         // JTable
-        String[] columnNames = { "選択", "社員ID", "氏名", "年齢", "エンジニア暦", "扱える言語", "データ作成日", "最終更新日" };
+        String[] columnNames = { "選択", "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語", "データ作成日", "最終更新日" };
         DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
             @Override
             public Class<?> getColumnClass(int columnIndex) {
@@ -189,14 +195,13 @@ public class ListViewUI {
                     return String.class;
                 }
             }
-            //🔳上記のコード変更前（ソートできない状態）
-            //     // 先頭の「選択」列はチェックボックスにする
-            //     return columnIndex == 0 ? Boolean.class : String.class;
-            // }
-            // @Override
-            // public boolean isCellEditable(int row, int column) {
-            //     return column == 0; // チェックボックスだけ編集可能
-            // }
+            
+            // チェックボックス（選択列）のみ編集可能
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 0; // チェックボックス（選択列）のみ編集可能
+            }
+
 
         };
 
@@ -214,6 +219,7 @@ public class ListViewUI {
         }
 
         employeeTable = new JTable(model);
+        updateEmployeeCountLabel();
 
 
         // ソート機能を追加🟢
@@ -319,5 +325,10 @@ employeeTable.setRowSorter(sorter);
         deleButton.setEnabled(isAnyChecked);
         csvExportButton.setEnabled(isAnyChecked);
         
+    }
+    
+    private void updateEmployeeCountLabel() {
+        int rowCount = employeeTable.getRowCount();
+        countLabel.setText("表示件数: " + rowCount + " 件");
     }
 }
