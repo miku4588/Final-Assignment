@@ -24,7 +24,7 @@ public class EmployeeManager {
      * 生成されてあるインスタンスのemployeeListを渡す
      * @return employeeList
      */
-    public List<EmployeeInfo> getEmployeeList() {
+    public static List<EmployeeInfo> getEmployeeList() {
         if (instance == null) {
             throw new IllegalStateException("EmployeeManagerはまだ初期化されていません。");
         }
