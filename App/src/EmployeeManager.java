@@ -21,17 +21,30 @@ public class EmployeeManager {
 
     
     /**
-     * ゲッター
+     * 生成されてあるインスタンスのemployeeListを渡す
      * @return employeeList
      */
     public List<EmployeeInfo> getEmployeeList() {
-        return employeeList;
+        if (instance == null) {
+            throw new IllegalStateException("EmployeeManagerはまだ初期化されていません。");
+        }
+        return instance.employeeList;
+    }
+
+
+    /**
+     * 生成されてあるインスタンスのemployeeListに新しい内容をセットする
+     * @param newEmployeeList
+     * @return EmployeeManagerのインスタンス
+     */
+    public static void setEmployeeList(List<EmployeeInfo> newEmployeeList) {
+        getInstance().employeeList.clear();
+        getInstance().employeeList.addAll(newEmployeeList);
     }
 
 
     /**
      * インスタンスを呼び出す（なければ生成）
-     * @param employeeList
      * @return EmployeeManagerのインスタンス
      */
     public static EmployeeManager getInstance() {
