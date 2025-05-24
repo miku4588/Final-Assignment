@@ -2,7 +2,7 @@ import java.time.LocalDate;
 import java.time.Year;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
+import java.util.Set;
 
 /**
  * 社員情報の各項目をまとめるクラス
@@ -22,6 +22,8 @@ class EmployeeInfo {
     private TrainingHistory trainingHistory;
     private Remarks remarks;
     private Languages languages;
+    private LocalDate creationDate;
+    private LocalDate lastUpdatedDate;
 
     public EmployeeInfo(EmployeeId employeeId,
                         Name name,
@@ -36,7 +38,9 @@ class EmployeeInfo {
                         Career career,
                         TrainingHistory trainingHistory,
                         Remarks remarks,
-                        Languages languages
+                        Languages languages,
+                        String creationDate,
+                        String lastUpdatedDate
                         ) {
         this.employeeId = employeeId;
         this.name = name;
@@ -52,24 +56,30 @@ class EmployeeInfo {
         this.trainingHistory = trainingHistory;
         this.remarks = remarks;
         this.languages = languages;
+        this.creationDate = LocalDate.parse(creationDate, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        this.lastUpdatedDate = LocalDate.parse(lastUpdatedDate, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
     }
 
     @Override
     public String toString() {
-        return employeeId.getEmployeeId() + "," +
-               name.getName() + "," +
-               phonetic.getPhonetic() + "," +
-               birthDate.getBirthDate().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")) + "," +
-               joinYearMonth.getJoinYearMonth().format(DateTimeFormatter.ofPattern("yyyy/MM")) + "," +
-               engineerStartYear.getEngineerStartYear() + "," +
-               technicalSkill.getTechnicalSkill() + "," +
-               attitude.getAttitude() + "," +
-               communicationSkill.getCommunicationSkill() + "," +
-               leadership.getLeadership() + "," +
-               career.getCareer() + "," +
-               trainingHistory.getTrainingHistory() + "," +
-               remarks.getRemarks() + "," +
-               String.join(",", languages.getLanguages());
+
+        // 1列目(No.)と2列目(追加・更新)をデータ作成日と最終更新日に使う
+        return getCreationDate().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")) + "," +
+               getLastUpdatedDate().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")) + "," +
+               getEmployeeId() + "," +
+               getName() + "," +
+               getPhonetic() + "," +
+               getBirthDate().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")) + "," +
+               getJoinYearMonth().format(DateTimeFormatter.ofPattern("yyyy/MM")) + "," +
+               getEngineerStartYear() + "," +
+               getTechnicalSkill() + "," +
+               getAttitude() + "," +
+               getCommunicationSkill() + "," +
+               getLeadership() + "," +
+               getCareer() + "," +
+               getTrainingHistory() + "," +
+               getRemarks() + "," +
+               String.join(",", getLanguages());
     }
 
     /**
@@ -180,7 +190,23 @@ class EmployeeInfo {
      * EmployeeInfoからLanguagesを取得
      * @return
      */
-    public List<String> getLanguages() {
+    public Set<String> getLanguages() {
         return languages.getLanguages();
+    }
+
+    /**
+     * EmployeeInfoからcreationDateを取得
+     * @return データ作成日
+     */
+    public LocalDate getCreationDate() {
+        return creationDate;
+    }
+    
+    /**
+     * EmployeeInfoからlastUpdatedDateを取得
+     * @return 最終更新日
+     */
+    public LocalDate getLastUpdatedDate() {
+        return lastUpdatedDate;
     }
 }
