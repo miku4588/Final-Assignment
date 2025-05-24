@@ -39,8 +39,8 @@ class EmployeeInfo {
                         TrainingHistory trainingHistory,
                         Remarks remarks,
                         Languages languages,
-                        String creationDate,
-                        String lastUpdatedDate
+                        LocalDate creationDate,
+                        LocalDate lastUpdatedDate
                         ) {
         this.employeeId = employeeId;
         this.name = name;
@@ -56,16 +56,16 @@ class EmployeeInfo {
         this.trainingHistory = trainingHistory;
         this.remarks = remarks;
         this.languages = languages;
-        this.creationDate = LocalDate.parse(creationDate, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-        this.lastUpdatedDate = LocalDate.parse(lastUpdatedDate, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        this.creationDate = creationDate;
+        this.lastUpdatedDate = lastUpdatedDate;
     }
 
     @Override
     public String toString() {
 
         // 1列目(No.)と2列目(追加・更新)をデータ作成日と最終更新日に使う
-        return getCreationDate().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")) + "," +
-               getLastUpdatedDate().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")) + "," +
+        return getCreationDate() + "," +
+               getLastUpdatedDate() + "," +
                getEmployeeId() + "," +
                getName() + "," +
                getPhonetic() + "," +
@@ -198,15 +198,23 @@ class EmployeeInfo {
      * EmployeeInfoからcreationDateを取得
      * @return データ作成日
      */
-    public LocalDate getCreationDate() {
-        return creationDate;
+    public String getCreationDate() {
+        if(creationDate == null) {
+            return "";
+        } else {
+            return creationDate.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        }
     }
     
     /**
      * EmployeeInfoからlastUpdatedDateを取得
      * @return 最終更新日
      */
-    public LocalDate getLastUpdatedDate() {
-        return lastUpdatedDate;
+    public String getLastUpdatedDate() {
+        if(lastUpdatedDate == null) {
+            return "";
+        } else {
+            return lastUpdatedDate.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        }
     }
 }
