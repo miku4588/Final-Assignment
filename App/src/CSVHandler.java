@@ -1,16 +1,17 @@
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
 
 public class CSVHandler {
     // ロガーを取得
     private static final EmployeeInfoLogger LOGGER = EmployeeInfoLogger.getInstance();
-    // CSVファイルのパス
+    // 読み込むCSVファイルのパス
     private String filePath;
     // CSVの形を整えて読み込めるようにしたString型のList
     private List<String> parseLineList;
@@ -35,7 +36,8 @@ public class CSVHandler {
 
     /**
      * CSVファイルを読み込み、EmployeeInfo型に変換したデータのListを返す
-     * @return EmployeeInfoのList
+     * @param isEmployeeInfoCSV データCSVを読み込むとき（起動時）ならtrue
+     * @return　EmployeeInfoのリスト
      */
     public List<EmployeeInfo> readCSV(Boolean isEmployeeInfoCSV) {
         LOGGER.logOutput(filePath + "　CSVファイル読み込み開始。");
@@ -43,7 +45,7 @@ public class CSVHandler {
         // データCSVを読み込むときはバリデーションチェックのみ実施
         if(isEmployeeInfoCSV) {
 
-            if(isValidCSV()) {
+            if(isValidCSV(true)) {
                 loadCSV(); // CSV読み込み処理
                 LOGGER.logOutput("CSVファイル読み込み完了。");
                 return employeeList;
@@ -67,7 +69,7 @@ public class CSVHandler {
         if(!isSameLayout()) {
             ErrorHandler.showErrorDialog("CSVファイルのレイアウトが異なります。");
             return null;
-        } else if(!isValidCSV()) {
+        } else if(!isValidCSV(false)) {
             ErrorHandler.showErrorDialog(String.join("\n", errorMessages)); // 改行(\n)で区切ってerrorMessagesを羅列
             return null;
         } else {
@@ -80,30 +82,43 @@ public class CSVHandler {
 
     /**
      * CSVファイルに社員データを書き込む
-     * @param employeeList
      */
-    public void writeCSV(List<EmployeeInfo> employeeList) {
-        LOGGER.logOutput(filePath + "　CSVファイルへの書き込みを開始。");
+    public static void writeCSV(List<EmployeeInfo> inputEmployeeList) {
+        LOGGER.logOutput("データCSVファイルへの書き込みを開始。");
 
-        // BufferedWriterとFileWriterで1行ずつ書き込む
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-// 💡💡💡💡💡要変更！！！！
-            // ヘッダーを生成
-            writer.write(templateHeaders.get(0));
-            writer.newLine();
-            writer.write(templateHeaders.get(1));
-            writer.newLine();
-            writer.write(templateHeaders.get(2));
-            writer.newLine();
+        // Files.moveとFiles.writeはIOExceptionになる可能性があるため囲う
+        try {
+            // データCSVをリネーム（バックアップのため）
+            Path originalPath = Paths.get(MainApp.DATA_FILE);
+            Path backupPath = Paths.get(originalPath + ".bak");
+            Files.move(originalPath, backupPath, StandardCopyOption.REPLACE_EXISTING);
 
-            // 2. 各EmployeeInfoのデータを書き込む
-            for (int i = 0; i < employeeList.size(); i++) {
-                writer.write(i + 1 + ",-," + employeeList.get(i).toString());
-                writer.newLine();
+            // 最終的にCSVに書き込みたいStringリストを定義
+            List<EmployeeInfo> finalEmployeeList = new ArrayList<>(EmployeeManager.getEmployeeList());
+
+            // 各要素をfinalEmployeeListに追加（更新の場合は既存データと差し替え）
+            for (EmployeeInfo inputEmployee : inputEmployeeList) {
+                if (inputEmployee.getLastUpdatedDate() == null) { // 最終更新日がnullなら新規追加
+                    finalEmployeeList.add(inputEmployee);
+                } else {
+                    finalEmployeeList.removeIf(removeEmployee -> removeEmployee.getEmployeeId().equals(inputEmployee.getEmployeeId()));
+                    finalEmployeeList.add(inputEmployee);
+                }
             }
-            LOGGER.logOutput("CSVファイルへの書き込み完了。");
-        } catch (IOException e) {
-            LOGGER.logOutput("CSVファイルへの書き込み失敗: " + e.getMessage());
+
+            // finalEmployeeListをString型に変換
+            List<String> finalEmployeeCSVLines = new ArrayList<>();
+            for (EmployeeInfo finalEmployee : finalEmployeeList) {
+                finalEmployeeCSVLines.add(finalEmployee.toString());
+            }
+
+            // データCSVに書き込めたらEMployeeManagerのリストも更新する
+            Files.write(originalPath, finalEmployeeCSVLines, StandardCharsets.UTF_8);
+            EmployeeManager.setEmployeeList(finalEmployeeList);
+
+        } catch (Exception e) {
+            LOGGER.logException("データCSVへの書き込み中にエラーが発生しました。", e);
+            ErrorHandler.showErrorDialog("データCSVへの書き込み中にエラーが発生しました。");
         }
     }
 
@@ -124,7 +139,7 @@ public class CSVHandler {
      * @return CSVファイルならtrue、CSVではないならfalse
      */
     public boolean isCSVFile() throws IOException {
-        LOGGER.logOutput(filePath + "　CSVファイルのファイル形式チェック開始");
+        LOGGER.logOutput("CSVファイルのファイル形式チェック開始");
         if (filePath == null || filePath.isEmpty()) {
             LOGGER.logOutput("ファイル形式チェックNG。ファイルが選択されていません。");
             return false;
@@ -137,7 +152,7 @@ public class CSVHandler {
             String firstLine = br.readLine();
             br.close();
             if (firstLine == null || !firstLine.startsWith("\uFEFF")) {
-                LOGGER.logOutput("BOM付きUTF-8以外のCSVファイルが指定されました。");
+                LOGGER.logOutput("ファイル形式チェックNG。BOM付きUTF-8以外のCSVファイルが指定されました。");
                 return false;
             }
         }
@@ -151,7 +166,7 @@ public class CSVHandler {
      * @return
      */
     public boolean isSameLayout() {
-        LOGGER.logOutput(filePath + "　CSVファイルのレイアウトチェック開始。");
+        LOGGER.logOutput("CSVファイルのレイアウトチェック開始。");
 
         // targetHeadersに最初の3行を格納
         List<String> targetHeaders = new ArrayList<>();
@@ -200,9 +215,9 @@ public class CSVHandler {
      * 読み込んだCSVがバリデーションチェックOKかどうか判定する
      * @return OKならtrue、NGならfalse
      */
-    public boolean isValidCSV() {
+    public boolean isValidCSV(Boolean isEmployeeInfoCSV) {
         parseLineList = parseLine(); // 指定されたCSVデータの中身をListに格納
-        LOGGER.logOutput(filePath + "　CSVファイルのバリデーションチェック開始。");
+        LOGGER.logOutput("CSVファイルのバリデーションチェック開始。");
 
         for (String line : parseLineList) {
             String[] data = line.split(","); // カンマで区切って各フィールドを取り出す
@@ -216,30 +231,46 @@ public class CSVHandler {
                 Languages languages = new Languages();
                 
                 for(int i = 1; i < data.length; i++) {
-                    // switchはアロー構文で書くとbreakなくてもswitch抜けられる！
+                    // switchはアロー構文で書くとbreakなくてもブロックから抜けられる！
                     switch (i) {
-                        case 1 -> System.out.println("・"); // 追加・更新
-                        case 2 -> addErrorMessage(data[0], data[i], EmployeeId::new);
+
+                        // 1個目（追加or更新）
+                        case 1 -> {
+                            if(isEmployeeInfoCSV == true) {
+                                // データCSVを読み込んでいるときは追加・更新の判定不要
+                            }else if(data[i].equals("追加")) {
+                                if(isEmployeeIdExists(data[2]) == true) {
+                                    errorMessages.add(data[0] + "行目　社員ID「" + data[2] + "」は既に存在します。");
+                                }
+                            }else if(data[i].equals("更新")) {
+                                if(isEmployeeIdExists(data[2]) == false) {
+                                    errorMessages.add(data[0] + "行目　社員ID「" + data[2] + "」と一致する社員が見つかりません。");
+                                }
+                            } else {
+                                errorMessages.add(data[0] + "行目　" + (i + 1) + "列目には「追加」もしくは「更新」と入れてください。");
+                            }
+                        }
+
+                        // 2個目（社員ID）～14個目（備考）
+                        case 2 -> addErrorMessage(data[0], data[2], EmployeeId::new);
                         case 3 -> addErrorMessage(data[0], data[i], Name::new);
                         case 4 -> addErrorMessage(data[0], data[i], Phonetic::new);
                         case 5 -> addErrorMessage(data[0], data[i], BirthDate::new);
                         case 6 -> addErrorMessage(data[0], data[i], JoinYearMonth::new);
                         case 7 -> addErrorMessage(data[0], data[i], EngineerStartYear::new);
-                        // case 8 -> addErrorMessage(data[0], data[i], TechnicalSkill::new); // 引数がDouble型
-                        // case 9 -> addErrorMessage(data[0], data[i], Attitude::new); // 引数がDouble型
-                        // case 10 -> addErrorMessage(data[0], data[i], CommunicationSkill::new); // 引数がDouble型
-                        // case 11 -> addErrorMessage(data[0], data[i], Leadership::new); // 引数がDouble型
-                        case 8 -> System.out.println("・"); // 技術力
-                        case 9 -> System.out.println("・"); // 受講態度
-                        case 10 -> System.out.println("・"); // コミュニケーション能力
-                        case 11 -> System.out.println("・"); // リーダーシップ
+                        case 8 -> addErrorMessage(data[0], data[i], TechnicalSkill::new);
+                        case 9 -> addErrorMessage(data[0], data[i], Attitude::new);
+                        case 10 -> addErrorMessage(data[0], data[i], CommunicationSkill::new);
+                        case 11 -> addErrorMessage(data[0], data[i], Leadership::new);
                         case 12 -> addErrorMessage(data[0], data[i], Career::new);
                         case 13 -> addErrorMessage(data[0], data[i], TrainingHistory::new);
                         case 14 -> addErrorMessage(data[0], data[i], Remarks::new);
+
+                        // 15個目以降（扱える言語）
                         default -> {
                             Boolean isValidLanguage = languages.addLanguage(data[i]);
                             if(!isValidLanguage) {
-                                errorMessages.add(data[0] + "行目　「" + data[i] + "」は有効な言語ではありません。");                                
+                                errorMessages.add(data[0] + "行目　「" + data[i] + "」は有効な言語ではありません。");
                             }
                         }
                     }
@@ -345,21 +376,17 @@ public class CSVHandler {
                 data[0].equals("ここから入力↓↓↓↓↓↓↓↓↓↓")) {
 
             } else {
-                //　各項目のインスタンスを作成
+                // 各項目のインスタンスを作成
                 EmployeeId employeeId = new EmployeeId(getValueOrEmpty(data, 2));
                 Name name = new Name(getValueOrEmpty(data, 3));
                 Phonetic phonetic = new Phonetic(getValueOrEmpty(data, 4));
                 BirthDate birthDate = new BirthDate(getValueOrEmpty(data, 5));
                 JoinYearMonth joinYearMonth = new JoinYearMonth(getValueOrEmpty(data, 6));
                 EngineerStartYear engineerStartYear = new EngineerStartYear(getValueOrEmpty(data, 7));
-                // TechnicalSkill technicalSkill = new TechnicalSkill(getValueOrEmpty(data, 8));
-                // Attitude attitude = new Attitude(getValueOrEmpty(data, 9));
-                // CommunicationSkill communicationSkill = new CommunicationSkill(getValueOrEmpty(data, 10));
-                // Leadership leadership = new Leadership(getValueOrEmpty(data, 11));
-                TechnicalSkill technicalSkill = new TechnicalSkill(1);
-                Attitude attitude = new Attitude(1);
-                CommunicationSkill communicationSkill = new CommunicationSkill(1);
-                Leadership leadership = new Leadership(1);
+                TechnicalSkill technicalSkill = new TechnicalSkill(getValueOrEmpty(data, 8));
+                Attitude attitude = new Attitude(getValueOrEmpty(data, 9));
+                CommunicationSkill communicationSkill = new CommunicationSkill(getValueOrEmpty(data, 10));
+                Leadership leadership = new Leadership(getValueOrEmpty(data, 11));
                 Career career = new Career(getValueOrEmpty(data, 12));
                 TrainingHistory trainingHistory = new TrainingHistory(getValueOrEmpty(data, 13));
                 Remarks remarks = new Remarks(getValueOrEmpty(data, 14));
@@ -371,12 +398,31 @@ public class CSVHandler {
                     languages.addLanguage(data[i]);
                 }
 
+                // データ作成日と最終更新日を設定
+                // CSV読み込み用テンプレートの場合…0個目がNo.、1個目が追加or更新
+                // データCSVの場合…0個目がデータ作成日、1個目が最終更新日
+                LocalDate creationDate = null;
+                LocalDate lastUpdatedDate = null;
+                if(data[1].equals("追加")) {
+                    creationDate = LocalDate.now();
+                } else if(data[1].equals("更新")) {
+                    creationDate = getCreationDateByEmployeeId(data[2]); // 社員IDが一致するデータの作成日と同じ日を設定
+                    lastUpdatedDate = LocalDate.now();
+                } else {
+                    // 0個目には必ずデータ作成日が入っているのでそのまま設定
+                    creationDate = LocalDate.parse(data[0], DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+                    // 1個目はブランクがありえるため、ブランクでない場合に最終更新日を設定（ブランクの場合はnull）
+                    if(data[1] != "") {
+                        lastUpdatedDate = LocalDate.parse(data[1], DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+                    }
+                }
+                
                 // EmployeeInfoのインスタンスを作成
                 EmployeeInfo employeeInfo = new EmployeeInfo(
                 employeeId,name,phonetic,birthDate,joinYearMonth,
                 engineerStartYear,technicalSkill,attitude,
                 communicationSkill,leadership,career,
-                trainingHistory,remarks, languages
+                trainingHistory,remarks,languages,creationDate,lastUpdatedDate
                 );
 
                 // employeeListに追加
@@ -401,5 +447,35 @@ public class CSVHandler {
 
         // 上記の条件以外の場合は必ず空文字を返す
         return "";
+    }
+
+
+    /**
+     * 社員IDがデータリストの中に存在するかどうか
+     * @param inputEmployeeId
+     * @return データリストの中に存在したらtrue、存在しなければfalse
+     */
+    private Boolean isEmployeeIdExists(String inputEmployeeId) {
+        for(EmployeeInfo employee : EmployeeManager.getEmployeeList()) {
+            if(inputEmployeeId.equals(employee.getEmployeeId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    /**
+     * 社員IDが一致するデータのデータ作成日を返す
+     * @param inputEmployeeId
+     * @return データ作成日
+     */
+    private LocalDate getCreationDateByEmployeeId(String inputEmployeeId) {
+        for(EmployeeInfo employee : EmployeeManager.getEmployeeList()) {
+            if(inputEmployeeId.equals(employee.getEmployeeId())) {
+                return employee.getCreationDate();
+            }
+        }
+        return null;
     }
 }

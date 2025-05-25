@@ -162,9 +162,10 @@ public class CSVUI extends JFrame {
             synchronized (LOCK) {
                 CSVHandler csvHandler = new CSVHandler(filePath); // CSVハンドラー
                 List<EmployeeInfo> importEmployeeList = csvHandler.readCSV(false); // 読み込む社員データのリスト
-// 💡💡💡💡💡readCSVでエラーが出た場合の動き要検討
-                if(importEmployeeList.isEmpty()) {
-                    ErrorHandler.showErrorDialog("データが1件もありません。");
+                if(importEmployeeList == null) {
+                    LOGGER.logOutput("CSV読み込み失敗。再度CSVファイルを指定してください。");
+                }else if (importEmployeeList.isEmpty()) {
+                    ErrorHandler.showErrorDialog("データが1件もありません。\n再度CSVファイルを指定してください。");
                     return;
                 } else {
                     SwingUtilities.invokeLater(() -> {
@@ -190,8 +191,7 @@ public class CSVUI extends JFrame {
         Thread threadSaveData = new Thread(() -> {
             // ロックを取得
             synchronized (LOCK) {
-                CSVHandler csvHandler = new CSVHandler(MainApp.DATA_FILE); // CSVハンドラー
-                csvHandler.writeCSV(employeeList);
+                CSVHandler.writeCSV(employeeList);
             }
         }, "CSVsaver");
 
