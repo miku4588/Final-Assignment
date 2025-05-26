@@ -72,6 +72,11 @@ public class CSVUI extends JFrame {
                 }
                 loadCSV(filePathField.getText()); // CSV読み込み処理
             });
+
+            // テンプレートダウンロードボタンにイベントリスナーを追加
+            templateButton.addActionListener(e -> {
+                CSVHandler.exportTemplateCSV(null);
+            });
             
             // 表示させる
             pack(); // ウィンドウサイズ自動調整

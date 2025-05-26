@@ -1,11 +1,16 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.Function;
 
 public class CSVHandler {
@@ -20,7 +25,7 @@ public class CSVHandler {
     // EmployeeInfoのList
     private List<EmployeeInfo> employeeList = new ArrayList<>(); // EmployeeInfoのList
     // テンプレートファイルのヘッダー
-    private List<String> templateHeaders = new ArrayList<>();
+    private static List<String> templateHeaders = new ArrayList<>();
     // ロック用のオブジェクト
     private static final Object LOCK = new Object();
     
@@ -40,86 +45,140 @@ public class CSVHandler {
      * @return　EmployeeInfoのリスト
      */
     public List<EmployeeInfo> readCSV(Boolean isEmployeeInfoCSV) {
-        LOGGER.logOutput(filePath + "　CSVファイル読み込み開始。");
 
-        // データCSVを読み込むときはバリデーションチェックのみ実施
-        if(isEmployeeInfoCSV) {
-
-            if(isValidCSV(true)) {
+        // スレッドを定義
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Future<List<EmployeeInfo>> threadReadCSV = executor.submit(() -> {
+            LOGGER.logOutput(filePath + "　CSVファイル読み込み開始。");
+    
+            // データCSVを読み込むときはバリデーションチェックのみ実施
+            if(isEmployeeInfoCSV) {
+    
+                if(isValidCSV(true)) {
+                    loadCSV(); // CSV読み込み処理
+                    LOGGER.logOutput("CSVファイル読み込み完了。");
+                    return employeeList;
+                } else {
+                    ErrorHandler.showErrorDialog("データファイルが不正のため、読み込めませんでした。\nログファイルを確認してください。");
+                    return null;
+                }
+            }
+            
+            // データCSV以外を読み込むときは3つのチェックを実施
+            try {
+                if(!isCSVFile()) {
+                    ErrorHandler.showErrorDialog("UTF-8(BOM付き)形式のCSVファイルを選択してください。");
+                    return null;
+                }
+            } catch (Exception e) {
+                LOGGER.logException("CSVファイルの形式チェック中にエラーが発生しました。", e);
+                ErrorHandler.showErrorDialog("CSVファイルの形式チェック中にエラーが発生しました。");
+                return null;
+            }
+            if(!isSameLayout()) {
+                ErrorHandler.showErrorDialog("CSVファイルのレイアウトが異なります。");
+                return null;
+            } else if(!isValidCSV(false)) {
+                ErrorHandler.showErrorDialog(String.join("\n", errorMessages)); // 改行(\n)で区切ってerrorMessagesを羅列
+                return null;
+            } else {
                 loadCSV(); // CSV読み込み処理
                 LOGGER.logOutput("CSVファイル読み込み完了。");
                 return employeeList;
-            } else {
-                ErrorHandler.showErrorDialog("データファイルが不正のため、読み込めませんでした。\nログファイルを確認してください。");
-                return null;
             }
-        }
-        
-        // データCSV以外を読み込むときは3つのチェックを実施
+        });
+
+        // スレッドを実行
+        List<EmployeeInfo> result;
+
         try {
-            if(!isCSVFile()) {
-                ErrorHandler.showErrorDialog("UTF-8(BOM付き)形式のCSVファイルを選択してください。");
-                return null;
-            }
+            result = threadReadCSV.get();
         } catch (Exception e) {
             LOGGER.logException("CSVファイルの形式チェック中にエラーが発生しました。", e);
             ErrorHandler.showErrorDialog("CSVファイルの形式チェック中にエラーが発生しました。");
-            return null;
+            result = null;
         }
-        if(!isSameLayout()) {
-            ErrorHandler.showErrorDialog("CSVファイルのレイアウトが異なります。");
-            return null;
-        } else if(!isValidCSV(false)) {
-            ErrorHandler.showErrorDialog(String.join("\n", errorMessages)); // 改行(\n)で区切ってerrorMessagesを羅列
-            return null;
-        } else {
-            loadCSV(); // CSV読み込み処理
-            LOGGER.logOutput("CSVファイル読み込み完了。");
-            return employeeList;
-        }
+        
+        return result;
+
     }
 
 
     /**
      * CSVファイルに社員データを書き込む
+     * @param inputEmployeeList
      */
     public static void writeCSV(List<EmployeeInfo> inputEmployeeList) {
         LOGGER.logOutput("データCSVファイルへの書き込みを開始。");
+        
+        // スレッドを定義
+        Thread threadWriteCSV = new Thread(() -> {
 
-        // Files.moveとFiles.writeはIOExceptionになる可能性があるため囲う
-        try {
-            // データCSVをリネーム（バックアップのため）
+            // データCSVのパスと、バックアップファイルのパスを定義
             Path originalPath = Paths.get(MainApp.DATA_FILE);
             Path backupPath = Paths.get(originalPath + ".bak");
-            Files.move(originalPath, backupPath, StandardCopyOption.REPLACE_EXISTING);
+            
+            // Files.moveとFiles.writeはIOExceptionになる可能性があるため囲う
+            try {
 
-            // 最終的にCSVに書き込みたいStringリストを定義
-            List<EmployeeInfo> finalEmployeeList = new ArrayList<>(EmployeeManager.getEmployeeList());
+                // ロックを取得して、データCSVをリネーム（バックアップのため）
+                synchronized (LOCK) {
+                    Files.move(originalPath, backupPath, StandardCopyOption.REPLACE_EXISTING); // REPLACE_EXISTING…ファイルが既存なら上書き
+                }
 
-            // 各要素をfinalEmployeeListに追加（更新の場合は既存データと差し替え）
-            for (EmployeeInfo inputEmployee : inputEmployeeList) {
-                if (inputEmployee.getLastUpdatedDate() == null) { // 最終更新日がnullなら新規追加
-                    finalEmployeeList.add(inputEmployee);
-                } else {
-                    finalEmployeeList.removeIf(removeEmployee -> removeEmployee.getEmployeeId().equals(inputEmployee.getEmployeeId()));
-                    finalEmployeeList.add(inputEmployee);
+                // 最終的にCSVに書き込みたいStringリストを定義
+                List<EmployeeInfo> finalEmployeeList = new ArrayList<>(EmployeeManager.getEmployeeList());
+
+                // 各要素をfinalEmployeeListに追加（更新の場合は既存データと差し替え）
+                for (EmployeeInfo inputEmployee : inputEmployeeList) {
+                    if (inputEmployee.getLastUpdatedDate() == null) { // 最終更新日がnullなら新規追加
+                        finalEmployeeList.add(inputEmployee);
+                    } else {
+                        finalEmployeeList.removeIf(
+                                removeEmployee -> removeEmployee.getEmployeeId().equals(inputEmployee.getEmployeeId()));
+                        finalEmployeeList.add(inputEmployee);
+                    }
+                }
+
+                // finalEmployeeListをString型に変換
+                List<String> finalEmployeeCSVLines = new ArrayList<>();
+                for (EmployeeInfo finalEmployee : finalEmployeeList) {
+                    finalEmployeeCSVLines.add(finalEmployee.toString());
+                }
+
+                // ロックを取得して、データCSVに書き込み
+                synchronized (LOCK) {
+                    Files.write(originalPath, finalEmployeeCSVLines, StandardCharsets.UTF_8);
+                }
+
+                // EMployeeManagerのリストも更新する
+                LOGGER.logOutput("データCSVファイルへの書き込み完了。");
+                LOGGER.logOutput("データリストを最新の情報に更新します。");
+                EmployeeManager.setEmployeeList(finalEmployeeList);
+                LOGGER.logOutput("データリストの更新完了。");
+
+            } catch (Exception e) {
+                LOGGER.logException("データCSVへの書き込み中にエラーが発生しました。", e);
+                ErrorHandler.showErrorDialog("データCSVへの書き込み中にエラーが発生しました。\n書き込み前のデータを復元します。");
+
+                // バックアップから復元
+                LOGGER.logOutput("データCSVファイルの復元を開始。");
+                
+                try {
+                    synchronized (LOCK) {
+                        if (Files.exists(backupPath)) {
+                            Files.move(backupPath, originalPath, StandardCopyOption.REPLACE_EXISTING); // REPLACE_EXISTING…ファイルが既存なら上書き
+                        }
+                    }
+                    LOGGER.logOutput("バックアップからCSVファイルを復元しました。");
+                } catch (Exception ex) {
+                    LOGGER.logException("バックアップからの復元に失敗しました。", ex);
+                    ErrorHandler.showErrorDialog("バックアップからの復元に失敗しました。");
                 }
             }
+        }, "CSVWriter");
 
-            // finalEmployeeListをString型に変換
-            List<String> finalEmployeeCSVLines = new ArrayList<>();
-            for (EmployeeInfo finalEmployee : finalEmployeeList) {
-                finalEmployeeCSVLines.add(finalEmployee.toString());
-            }
-
-            // データCSVに書き込めたらEMployeeManagerのリストも更新する
-            Files.write(originalPath, finalEmployeeCSVLines, StandardCharsets.UTF_8);
-            EmployeeManager.setEmployeeList(finalEmployeeList);
-
-        } catch (Exception e) {
-            LOGGER.logException("データCSVへの書き込み中にエラーが発生しました。", e);
-            ErrorHandler.showErrorDialog("データCSVへの書き込み中にエラーが発生しました。");
-        }
+        threadWriteCSV.start();
     }
 
 
@@ -130,6 +189,98 @@ public class CSVHandler {
         templateHeaders.add("No.,追加・更新,社員ID,氏名,氏名カナ,生年月日,入社年月,エンジニア開始年,技術力,受講態度,コミュニケーション能力,リーダーシップ,経歴,研修の受講歴,備考,扱える言語,,");
         templateHeaders.add("入力例,更新,F10000,大阪 太郎,オオサカ タロウ,2000/01/01,2024/04,2020,3.5,4,5,4.5,これは経歴です。改行も可能です。,これは研修の受講歴です。改行も可能です。,これは備考です。改行も可能です。,HTML,CSS,Java");
         templateHeaders.add("ここから入力↓↓↓↓↓↓↓↓↓↓,,,,,,,,,,,,,,,,,");
+    }
+
+
+    /**
+     * CSVテンプレートファイルを生成する
+     */
+    public static void exportTemplateCSV(List<EmployeeInfo> exportEmployeeList) {
+        LOGGER.logOutput("社員データ（CSVテンプレート）の出力を開始。");
+
+        // ダウンロードフォルダのパスを取得
+        String userHome = System.getProperty("user.home");
+        Path downloadDirectory = Paths.get(userHome, "Downloads");
+
+        // ダウンロードフォルダの存在確認
+        // Files.exists…存在するならtrue、存在しない場合や例外発生時はfalseを返す
+        if (!Files.exists(downloadDirectory)) {
+            LOGGER.logOutput("ダウンロードフォルダが見つからないため処理を中止します。");
+            ErrorHandler.showErrorDialog("ダウンロードフォルダが見つからないため処理を中止します。");
+            return;
+        }
+        
+        // テンプレートのファイル名を生成
+        Path templateFilePath = generateTemplateFilePath(exportEmployeeList, downloadDirectory);
+        
+        // テンプレートファイルを作成し、内容を書き込む
+        try (OutputStream out = Files.newOutputStream(templateFilePath);
+             OutputStreamWriter osw = new OutputStreamWriter(out, StandardCharsets.UTF_8);
+             BufferedWriter templateWriter = new BufferedWriter(osw)) {
+            
+            LOGGER.logOutput(templateFilePath.toString() + "　空のCSVファイルを生成。");
+
+            // BOMを書き込む
+            out.write(0xEF);
+            out.write(0xBB);
+            out.write(0xBF);
+
+            // ヘッダーを書き込む
+            LOGGER.logOutput("テンプレートのヘッダーを入力。");
+            templateWriter.write(String.join("\n", templateHeaders));
+            templateWriter.newLine();
+
+            // 社員情報リストがあれば書き込む
+            LOGGER.logOutput("社員データを入力。");
+            if (exportEmployeeList != null) {
+                for (EmployeeInfo employee : exportEmployeeList) {
+                    templateWriter.write(employee.toString());
+                    templateWriter.newLine();
+                }
+            }
+            
+            LOGGER.logOutput("社員データ（CSVテンプレート）の出力完了。");
+        } catch (IOException e) {
+            LOGGER.logException("CSVテンプレートファイルを作成中にエラーが発生しました。", e);
+        }
+    }
+
+
+
+    /**
+     * CSVテンプレートのファイル名を生成する
+     * @param exportEmployeeList 出力する社員のリスト
+     * @param downloadDirectory データを出力する保存先
+     * @return 生成したファイル名のパスファイル
+     */
+    private static Path generateTemplateFilePath(List<EmployeeInfo> exportEmployeeList, Path downloadDirectory) {
+        
+        // リストが空の場合と中身ありの場合でファイル名を分ける
+        String baseFileName;
+        if (exportEmployeeList == null || exportEmployeeList.isEmpty()) {
+            baseFileName = "エンジニア情報一括取り込みテンプレート.csv";
+        } else {
+            String timeStamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            baseFileName = "エンジニア情報一括出力_" + timeStamp + ".csv";
+        }
+        
+        // ファイル名がダウンロードフォルダ内に存在しない場合はそのまま返す
+        Path csvPath = downloadDirectory.resolve(baseFileName);
+        if (!Files.exists(csvPath)) {
+            return csvPath;
+        }
+        
+        // ファイル名がダウンロードフォルダ内に存在する場合は末尾に連番を付与
+        int count = 1;
+        String newFileName;
+        do {
+            String fileNameWithoutExt = baseFileName.replace(".csv", "");
+            newFileName = fileNameWithoutExt + " (" + count + ").csv";
+            csvPath = downloadDirectory.resolve(newFileName);
+            count++;
+        } while (Files.exists(csvPath));
+
+        return csvPath;
     }
 
 
