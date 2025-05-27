@@ -97,6 +97,26 @@ class EmployeeInfo {
                String.join(",", getLanguages());
     }
 
+
+    public String toStringUserFields() {
+
+        // 1列目(No.)と2列目(追加・更新)以外を出力
+        return getEmployeeId() + "," +
+               getName() + "," +
+               getPhonetic() + "," +
+               getBirthDate().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")) + "," +
+               getJoinYearMonth().format(DateTimeFormatter.ofPattern("yyyy/MM")) + "," +
+               getEngineerStartYear() + "," +
+               getTechnicalSkill() + "," +
+               getAttitude() + "," +
+               getCommunicationSkill() + "," +
+               getLeadership() + "," +
+               getCareer() + "," +
+               getTrainingHistory() + "," +
+               getRemarks() + "," +
+               String.join(",", getLanguages());
+    }
+
     /**
      * EmployeeInfoからEmployeeIdを取得
      * @return 社員ID

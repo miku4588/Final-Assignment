@@ -196,7 +196,7 @@ public class CSVHandler {
      * CSVテンプレートファイルを生成する
      */
     public static void exportTemplateCSV(List<EmployeeInfo> exportEmployeeList) {
-        LOGGER.logOutput("社員データ（CSVテンプレート）の出力を開始。");
+        LOGGER.logOutput("CSVテンプレートの出力を開始。");
 
         // ダウンロードフォルダのパスを取得
         String userHome = System.getProperty("user.home");
@@ -231,15 +231,17 @@ public class CSVHandler {
             templateWriter.newLine();
 
             // 社員情報リストがあれば書き込む
-            LOGGER.logOutput("社員データを入力。");
             if (exportEmployeeList != null) {
-                for (EmployeeInfo employee : exportEmployeeList) {
-                    templateWriter.write(employee.toString());
+                LOGGER.logOutput("社員データを入力。");
+                for (int i = 0; i  < exportEmployeeList.size(); i++) {
+                    templateWriter.write(i + 1 + ",," + exportEmployeeList.get(i).toStringUserFields());
                     templateWriter.newLine();
                 }
+                LOGGER.logOutput("社員データの入力完了。");
             }
+
+            LOGGER.logOutput("CSVテンプレートの出力完了。");
             
-            LOGGER.logOutput("社員データ（CSVテンプレート）の出力完了。");
         } catch (IOException e) {
             LOGGER.logException("CSVテンプレートファイルを作成中にエラーが発生しました。", e);
         }
