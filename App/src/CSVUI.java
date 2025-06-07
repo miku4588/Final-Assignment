@@ -39,6 +39,7 @@ public class CSVUI extends JFrame {
             
             // 上部パネル…テンプレートダウンロードボタン
             JPanel topPanel = new JPanel();
+
             topPanel.add(templateButton);
             add(topPanel, BorderLayout.NORTH);
             
@@ -106,17 +107,14 @@ public class CSVUI extends JFrame {
      * @param addCount 追加人数
      * @param updateCount 更新人数
      */
-// 💡💡💡💡💡追加・更新の人数カウントやってません
     private void showConfirmDialog(int addCount, int updateCount, List<EmployeeInfo> employeeList) {
         confirmDialog.setLayout(new BorderLayout(10,10));
 
         // 中央パネル…確認メッセージ
         JPanel messagePanel = new JPanel();
         messagePanel.add(new JLabel(
-            // "<html>まだ保存は完了していません。<br>下記の内容で保存してよろしいですか？<br>" +
-            // "追加" + addCount + "名、更新" + updateCount + "名</html>"
             "<html>まだ保存は完了していません。<br>下記の内容で保存してよろしいですか？<br>" +
-            "追加○○名、更新○○名<br>（このダイアログまだ作成中です）</html>"
+            "追加" + addCount + "名、更新" + updateCount + "名</html>"
         ));
         confirmDialog.add(messagePanel, BorderLayout.CENTER);
 
@@ -174,8 +172,9 @@ public class CSVUI extends JFrame {
                     return;
                 } else {
                     SwingUtilities.invokeLater(() -> {
-// 💡💡💡💡💡追加・更新の人数カウント実装したら修正
-                        showConfirmDialog(1, 2, importEmployeeList);
+                        int addCount = csvHandler.addedEmployeeCount;
+                        int updateCount = csvHandler.updatedEmployeeCount;
+                        showConfirmDialog(addCount, updateCount, importEmployeeList);
                     });
                 }
             }
@@ -185,7 +184,10 @@ public class CSVUI extends JFrame {
         SwingUtilities.invokeLater(() -> prosessingDialog.dispose());
     }
 
-// 💡💡💡💡💡データ保存処理まだできてません
+    /**
+     * 読み込んだCSVファイルの保存処理
+     * @param employeeList
+     */
     private void saveCSV(List<EmployeeInfo> employeeList) {
         
         // 処理中メッセージ表示
