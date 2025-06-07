@@ -23,7 +23,11 @@ public class CSVHandler {
     // バリデーションエラー時のメッセージ
     private List<String> errorMessages = new ArrayList<>();
     // EmployeeInfoのList
-    private List<EmployeeInfo> employeeList = new ArrayList<>(); // EmployeeInfoのList
+    private List<EmployeeInfo> employeeList = new ArrayList<>();
+    // 「追加」の人数
+    public int addedEmployeeCount = 0;
+    // 「更新」の人数
+    public int updatedEmployeeCount = 0;
     // テンプレートファイルのヘッダー
     private static List<String> templateHeaders = new ArrayList<>();
     // ロック用のオブジェクト
@@ -105,7 +109,7 @@ public class CSVHandler {
 
 
     /**
-     * CSVファイルに社員データを書き込む
+     * CSVファイルに、リストから一括で社員データを書き込む
      * @param inputEmployeeList
      */
     public static void writeCSV(List<EmployeeInfo> inputEmployeeList) {
@@ -113,72 +117,126 @@ public class CSVHandler {
         
         // スレッドを定義
         Thread threadWriteCSV = new Thread(() -> {
-
             // データCSVのパスと、バックアップファイルのパスを定義
             Path originalPath = Paths.get(MainApp.DATA_FILE);
             Path backupPath = Paths.get(originalPath + ".bak");
             
-            // Files.moveとFiles.writeはIOExceptionになる可能性があるため囲う
-            try {
+            // 最終的にCSVに書き込みたいStringリストを定義
+            List<EmployeeInfo> finalEmployeeList = new ArrayList<>(EmployeeManager.getEmployeeList());
+            
 
-                // ロックを取得して、データCSVをリネーム（バックアップのため）
-                synchronized (LOCK) {
-                    Files.move(originalPath, backupPath, StandardCopyOption.REPLACE_EXISTING); // REPLACE_EXISTING…ファイルが既存なら上書き
-                }
-
-                // 最終的にCSVに書き込みたいStringリストを定義
-                List<EmployeeInfo> finalEmployeeList = new ArrayList<>(EmployeeManager.getEmployeeList());
-
-                // 各要素をfinalEmployeeListに追加（更新の場合は既存データと差し替え）
-                for (EmployeeInfo inputEmployee : inputEmployeeList) {
-                    if (inputEmployee.getLastUpdatedDate() == null) { // 最終更新日がnullなら新規追加
-                        finalEmployeeList.add(inputEmployee);
-                    } else {
-                        finalEmployeeList.removeIf(
-                                removeEmployee -> removeEmployee.getEmployeeId().equals(inputEmployee.getEmployeeId()));
-                        finalEmployeeList.add(inputEmployee);
-                    }
-                }
-
-                // finalEmployeeListをString型に変換
-                List<String> finalEmployeeCSVLines = new ArrayList<>();
-                for (EmployeeInfo finalEmployee : finalEmployeeList) {
-                    finalEmployeeCSVLines.add(finalEmployee.toString());
-                }
-
-                // ロックを取得して、データCSVに書き込み
-                synchronized (LOCK) {
-                    Files.write(originalPath, finalEmployeeCSVLines, StandardCharsets.UTF_8);
-                }
-
-                // EMployeeManagerのリストも更新する
-                LOGGER.logOutput("データCSVファイルへの書き込み完了。");
-                LOGGER.logOutput("データリストを最新の情報に更新します。");
-                EmployeeManager.setEmployeeList(finalEmployeeList);
-                LOGGER.logOutput("データリストの更新完了。");
-
-            } catch (Exception e) {
-                LOGGER.logException("データCSVへの書き込み中にエラーが発生しました。", e);
-                ErrorHandler.showErrorDialog("データCSVへの書き込み中にエラーが発生しました。\n書き込み前のデータを復元します。");
-
-                // バックアップから復元
-                LOGGER.logOutput("データCSVファイルの復元を開始。");
-                
-                try {
-                    synchronized (LOCK) {
-                        if (Files.exists(backupPath)) {
-                            Files.move(backupPath, originalPath, StandardCopyOption.REPLACE_EXISTING); // REPLACE_EXISTING…ファイルが既存なら上書き
-                        }
-                    }
-                    LOGGER.logOutput("バックアップからCSVファイルを復元しました。");
-                } catch (Exception ex) {
-                    LOGGER.logException("バックアップからの復元に失敗しました。", ex);
-                    ErrorHandler.showErrorDialog("バックアップからの復元に失敗しました。");
+            // 各要素をfinalEmployeeListに追加（更新の場合は既存データと差し替え）
+            for (EmployeeInfo inputEmployee : inputEmployeeList) {
+                if (inputEmployee.getLastUpdatedDate() == null) { // 最終更新日がnullなら新規追加
+                    finalEmployeeList.add(inputEmployee);
+                } else {
+                    finalEmployeeList.removeIf(
+                            removeEmployee -> removeEmployee.getEmployeeId().equals(inputEmployee.getEmployeeId()));
+                    finalEmployeeList.add(inputEmployee);
                 }
             }
+            
+            // finalEmployeeListをCSVに書き込む
+            saveEmployeeListToCSV(finalEmployeeList, originalPath, backupPath);
         }, "CSVWriter");
 
         threadWriteCSV.start();
+    }
+
+
+    /**
+     * CSVファイルに、1名分の社員データを書き込む
+     * @param inputEmployee 書き込みたい社員データ
+     * @param isNewEmployeeData trueなら新規追加、falseなら更新
+     */
+    public static void writeCSV(EmployeeInfo inputEmployee, boolean isNewEmployeeData) {
+        LOGGER.logOutput("データCSVファイルへの書き込みを開始。");
+
+        // スレッドを定義
+        Thread threadWriteCSV = new Thread(() -> {
+            // データCSVのパスと、バックアップファイルのパスを定義
+            Path originalPath = Paths.get(MainApp.DATA_FILE);
+            Path backupPath = Paths.get(originalPath + ".bak");
+
+            // 最終的にCSVに書き込みたいStringリストを定義
+            List<EmployeeInfo> finalEmployeeList = new ArrayList<>(EmployeeManager.getEmployeeList());
+
+            // データをfinalEmployeeListに追加（更新の場合は既存データと差し替え）
+            if (isNewEmployeeData) {
+                finalEmployeeList.add(inputEmployee);
+            } else {
+                finalEmployeeList.removeIf(
+                        removeEmployee -> removeEmployee.getEmployeeId().equals(inputEmployee.getEmployeeId()));
+                finalEmployeeList.add(inputEmployee);
+            }
+
+            // finalEmployeeListをCSVに書き込む
+            saveEmployeeListToCSV(finalEmployeeList, originalPath, backupPath);
+        }, "CSVWriter");
+
+        threadWriteCSV.start();
+    }
+
+
+    /**
+     * writeCSV内で作った書き込み用リストをCSVに書き込む
+     * @param finalEmployeeList
+     * @param originalPath
+     * @param backupPath
+     */
+    private static void saveEmployeeListToCSV(List<EmployeeInfo> finalEmployeeList, Path originalPath, Path backupPath) {
+        // Files.moveとFiles.writeはIOExceptionになる可能性があるため囲う
+        try {
+            // finalEmployeeListをString型に変換
+            List<String> finalEmployeeLines = new ArrayList<>();
+            for (EmployeeInfo finalEmployee : finalEmployeeList) {
+                finalEmployeeLines.add(finalEmployee.toString());
+            }
+
+            // BOM付きで書き込むため、finalEmployeeCSVLinesをUTF-8でバイト配列に更に変換
+            byte[] body = String.join(System.lineSeparator(), finalEmployeeLines).getBytes(StandardCharsets.UTF_8);
+
+            // BOM（0xEF, 0xBB, 0xBF）
+            byte[] bom = new byte[] { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF };
+            byte[] finalEmployeeBytes = new byte[bom.length + body.length];
+            System.arraycopy(bom, 0, finalEmployeeBytes, 0, bom.length);
+            System.arraycopy(body, 0, finalEmployeeBytes, bom.length, body.length);
+
+            // ロックを取得して、データCSVをリネーム（バックアップのため）
+            synchronized (LOCK) {
+                Files.move(originalPath, backupPath, StandardCopyOption.REPLACE_EXISTING); // REPLACE_EXISTING…ファイルが既存なら上書き
+            }
+            LOGGER.logOutput("バックアップファイルの生成完了。");
+
+            // ロックを取得して、データCSVに書き込み
+            synchronized (LOCK) {
+                Files.write(originalPath, finalEmployeeBytes);
+            }
+            LOGGER.logOutput("データCSVファイルへの書き込み完了。");
+
+            // EMployeeManagerのリストも更新する
+            EmployeeManager.setEmployeeList(finalEmployeeList);
+            LOGGER.logOutput("データリストの更新完了。");
+
+        } catch (Exception e) {
+            LOGGER.logException("データCSVへの書き込み中にエラーが発生しました。", e);
+            ErrorHandler.showErrorDialog("データCSVへの書き込み中にエラーが発生しました。\n書き込み前のデータを復元します。");
+
+            // バックアップから復元
+            LOGGER.logOutput("データCSVファイルの復元を開始。");
+
+            try {
+                synchronized (LOCK) {
+                    if (Files.exists(backupPath)) {
+                        Files.move(backupPath, originalPath, StandardCopyOption.REPLACE_EXISTING); // REPLACE_EXISTING…ファイルが既存なら上書き
+                    }
+                }
+                LOGGER.logOutput("バックアップからCSVファイルを復元しました。");
+            } catch (Exception ex) {
+                LOGGER.logException("バックアップからの復元に失敗しました。", ex);
+                ErrorHandler.showErrorDialog("バックアップからの復元に失敗しました。");
+            }
+        }
     }
 
 
@@ -355,6 +413,8 @@ public class CSVHandler {
             String targetLine = targetHeaders.get(i);
             if (!templateLine.equals(targetLine)) {
                 LOGGER.logOutput("レイアウトチェックNG。ヘッダーがテンプレートと異なります。");
+                System.out.println(templateLine);
+                System.out.println(targetLine);
                 return false;
             }
         }
@@ -389,15 +449,19 @@ public class CSVHandler {
 
                         // 1個目（追加or更新）
                         case 1 -> {
-                            if(isEmployeeInfoCSV == true) {
+                            if(isEmployeeInfoCSV) {
                                 // データCSVを読み込んでいるときは追加・更新の判定不要
                             }else if(data[i].equals("追加")) {
-                                if(isEmployeeIdExists(data[2]) == true) {
+                                if(isEmployeeIdExists(data[2])) {
                                     errorMessages.add(data[0] + "行目　社員ID「" + data[2] + "」は既に存在します。");
+                                } else {
+                                    addedEmployeeCount++;
                                 }
                             }else if(data[i].equals("更新")) {
-                                if(isEmployeeIdExists(data[2]) == false) {
+                                if(!isEmployeeIdExists(data[2])) {
                                     errorMessages.add(data[0] + "行目　社員ID「" + data[2] + "」と一致する社員が見つかりません。");
+                                } else {
+                                    updatedEmployeeCount++;
                                 }
                             } else {
                                 errorMessages.add(data[0] + "行目　" + (i + 1) + "列目には「追加」もしくは「更新」と入れてください。");
@@ -515,7 +579,10 @@ public class CSVHandler {
      */
     private void loadCSV() {
 
-        if (parseLineList.isEmpty()) {
+        if(parseLineList.isEmpty()) {
+            LOGGER.logOutput("データが1件もないため読み込み処理を終了します。");
+            return;
+        } else if(parseLineList.size() == 1 && parseLineList.get(0).length() == 0) {
             LOGGER.logOutput("データが1件もないため読み込み処理を終了します。");
             return;
         }
