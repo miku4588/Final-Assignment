@@ -73,23 +73,40 @@ public class DetailViewUI extends JFrame {
             topPanel.add(topRightPanel, BorderLayout.EAST);
             add(topPanel, BorderLayout.NORTH);
 
+            // 日時系、数値系の項目の値を表示用に整える
+            String birthDateString = targetEmployee.getBirthDate().format(DateTimeFormatter.ofPattern("yyyy年MM月dd日"));
+            String joinYearMonthString = targetEmployee.getJoinYearMonth().format(DateTimeFormatter.ofPattern("yyyy年MM月"));
+            String engineerStartYear = targetEmployee.getEngineerStartYear().format(DateTimeFormatter.ofPattern("yyyy年"));
+
+            double technicalSkillDouble = targetEmployee.getTechnicalSkill();
+            double attitudeDouble = targetEmployee.getAttitude();
+            double communicationSkillDouble = targetEmployee.getCommunicationSkill();
+            double leadershipDouble = targetEmployee.getLeadership();
+            
+            Number technicalSkill = technicalSkillDouble;
+            Number attitude = attitudeDouble;
+            Number communicationSkill = communicationSkillDouble;
+            Number leadership = leadershipDouble;
+
+            if (technicalSkillDouble == Math.floor(technicalSkillDouble)) {technicalSkill = (int)technicalSkillDouble;}
+            if (attitudeDouble == Math.floor(attitudeDouble)) {attitude = (int)attitudeDouble;}
+            if (communicationSkillDouble == Math.floor(communicationSkillDouble)) {communicationSkill = (int)communicationSkillDouble;}
+            if (leadershipDouble == Math.floor(leadershipDouble)) {leadership = (int)leadershipDouble;}            
+
             // 中央左パネル…各項目（経歴、研修の受講歴、備考以外）
             JPanel leftPanel = new JPanel();
             leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS)); // 縦に並べる
             leftPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // 余白
             addSelectableField(leftPanel, "氏名カナ：", targetEmployee.getPhonetic());
             addSelectableField(leftPanel, "氏名：", targetEmployee.getName());
-            addSelectableField(leftPanel, "生年月日：",
-                    targetEmployee.getBirthDate().format(DateTimeFormatter.ofPattern("yyyy年MM月dd日")));
-            addSelectableField(leftPanel, "入社年月：",
-                    targetEmployee.getJoinYearMonth().format(DateTimeFormatter.ofPattern("yyyy年MM月")));
-            addSelectableField(leftPanel, "エンジニア開始年：",
-                    targetEmployee.getEngineerStartYear().format(DateTimeFormatter.ofPattern("yyyy年")));
+            addSelectableField(leftPanel, "生年月日：", birthDateString);
+            addSelectableField(leftPanel, "入社年月：", joinYearMonthString);                    
+            addSelectableField(leftPanel, "エンジニア開始年：", engineerStartYear);
             addSelectableField(leftPanel, "扱える言語：", String.join(",", targetEmployee.getLanguages()));
-            addSelectableField(leftPanel, "技術力：", targetEmployee.getTechnicalSkill() + " / 5");
-            addSelectableField(leftPanel, "受講態度：", targetEmployee.getAttitude() + " / 5");
-            addSelectableField(leftPanel, "コミュニケーション能力：", targetEmployee.getCommunicationSkill() + " / 5");
-            addSelectableField(leftPanel, "リーダーシップ：", targetEmployee.getLeadership() + " / 5");
+            addSelectableField(leftPanel, "技術力：", technicalSkill + " / 5");
+            addSelectableField(leftPanel, "受講態度：", attitude + " / 5");
+            addSelectableField(leftPanel, "コミュニケーション能力：", communicationSkill + " / 5");
+            addSelectableField(leftPanel, "リーダーシップ：", leadership + " / 5");
             leftPanel.add(Box.createVerticalGlue()); // 最後にglueを詰め込む（最後じゃないとレイアウト崩れるので注意）
 
             // 中央右パネル…経歴、研修の受講歴、備考
@@ -223,9 +240,11 @@ public class DetailViewUI extends JFrame {
             // 確定ボタンにイベントリスナーを追加
             deleteConfirmButton.addActionListener(e -> {
                 deleteDialog.dispose();// 確認ダイアログ終了
+// 💡💡💡💡💡これでいいんだろうか
                 CSVHandler csvHandler = new CSVHandler(MainApp.DATA_FILE); // CSVハンドラー
                 EmployeeDeleter employeeDeleter = new EmployeeDeleter(csvHandler); // 削除クラスのインスタンス
                 employeeDeleter.deleteEmployee(EmployeeIdString); // 削除
+                new ListViewUI(EmployeeManager.getInstance());
             });
 
             // キャンセルボタンにイベントリスナーを追加

@@ -39,7 +39,6 @@ public class CSVUI extends JFrame {
             
             // 上部パネル…テンプレートダウンロードボタン
             JPanel topPanel = new JPanel();
-
             topPanel.add(templateButton);
             add(topPanel, BorderLayout.NORTH);
             

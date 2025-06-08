@@ -43,10 +43,13 @@ public class MainApp {
         // ListViewUIを初期化
         // EmployeeManagerがnullの場合はListViewUIを出さない
         try {
-            ListViewUI listView = new ListViewUI(EmployeeManager.getInstance());
+            new ListViewUI(EmployeeManager.getInstance());
         } catch (IllegalStateException e) {
             LOGGER.logOutput("データが不正のため一覧画面の表示を中止します。");
+            ErrorHandler.showErrorDialog("データが不正のためアプリの表示を中止します。");
         }
+
+        new DetailViewUI("E0001");
     }
 
     private static void loadEmployeeInfoCSV() {
