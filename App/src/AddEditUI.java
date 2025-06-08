@@ -1,6 +1,10 @@
 import java.awt.*;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Set;
 import java.util.Date;
+import java.util.HashSet;
+
 import javax.swing.*;
 
 // エンジニア情報を追加・編集するためのUIクラス
@@ -11,11 +15,8 @@ public class AddEditUI {
     private JTextField employeeIdField; // 社員IDの入力欄
     private JLabel creationDateLabel; // データ作成日表示
     private JLabel lastUpdatedDateLabel; // 最終更新日表示
-    private EmployeeAdder employeeAdder;
 
     public AddEditUI() {
-        CSVHandler csvHandler = new CSVHandler("data/employees.csv");
-        employeeAdder = new EmployeeAdder(csvHandler);
         initialize(); // 初期化処理
     }
 
@@ -35,7 +36,7 @@ public class AddEditUI {
         idPanel.add(employeeIdField);
 
         // ボタンパネルに社員IDフィールドも渡す
-        buttonPanel = new ButtonPanel(frame, formPanel, employeeAdder, employeeIdField);
+        buttonPanel = new ButtonPanel(frame, formPanel, employeeIdField);
 
         // 日付の表示（作成日・更新日）
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
@@ -88,13 +89,11 @@ class ButtonPanel extends JPanel {
     private JButton saveButton, cancelButton;
     private JFrame frame;
     private EmployeeFormPanel formPanel;
-    private EmployeeAdder employeeAdder;
     private JTextField employeeIdField;
 
-    public ButtonPanel(JFrame frame, EmployeeFormPanel formPanel, EmployeeAdder employeeAdder, JTextField employeeIdField) {
+    public ButtonPanel(JFrame frame, EmployeeFormPanel formPanel, JTextField employeeIdField) {
         this.frame = frame;
         this.formPanel = formPanel;
-        this.employeeAdder = employeeAdder;
         this.employeeIdField = employeeIdField;
 
         setLayout(new FlowLayout(FlowLayout.RIGHT));
@@ -139,7 +138,7 @@ class ButtonPanel extends JPanel {
         SwingWorker<Boolean, Void> worker = new SwingWorker<>() {
             @Override
             protected Boolean doInBackground() {
-                return employeeAdder.addEmployee(newEmployee);
+                return EmployeeAdder.addEmployee(newEmployee);
             }
 
             @Override
@@ -277,17 +276,23 @@ class EmployeeFormPanel extends JPanel {
     }
 
     public EmployeeInfo getEmployeeData() {
-        String name = nameField.getText().trim();
-        String phonetic = phoneticField.getText().trim();
+        Name name = new Name(nameField.getText().trim());
+        Phonetic phonetic = new Phonetic(phoneticField.getText().trim());
+        Languages languages = new Languages();
         String languagesSpoken = languagesSpokenField.getText().trim();
+        String[] languagesList = languagesSpoken.split(",");
+        Set<String> languagesHashSet = new HashSet<>(Arrays.asList(languagesList));
+        languages.addLanguages(languagesHashSet);
         
         // 生年月日や入社年月の取得ロジックを追加
         int birthYear = Integer.parseInt(((JComboBox<String>) ((JPanel) getComponent(0)).getComponent(2)).getSelectedItem().toString());
         int birthMonth = Integer.parseInt(((JComboBox<String>) ((JPanel) getComponent(0)).getComponent(2)).getSelectedItem().toString());
         int birthDay = Integer.parseInt(((JComboBox<String>) ((JPanel) getComponent(0)).getComponent(2)).getSelectedItem().toString());
+        BirthDate birthDate = new BirthDate(birthYear + "/" + birthMonth + "/" + birthDay);
+
         
         // EmployeeInfoオブジェクトを生成して返す処理
-        return new EmployeeInfo(name, phonetic, languagesSpoken, birthYear, birthMonth, birthDay);
+        return new EmployeeInfo(null, name, phonetic, birthDate, null, null, null, null, null, null, null, null, null, languages, null, null);
     }
 
     // 評価用のドロップダウンとラベルを含んだパネルを生成
