@@ -244,6 +244,7 @@ public class CSVHandler {
      * ヘッダー行を作成する
      */
     private void generateTemplateHeaders() {
+        templateHeaders.clear();
         templateHeaders.add("No.,追加・更新,社員ID,氏名,氏名カナ,生年月日,入社年月,エンジニア開始年,技術力,受講態度,コミュニケーション能力,リーダーシップ,経歴,研修の受講歴,備考,扱える言語,,");
         templateHeaders.add("入力例,更新,F10000,大阪 太郎,オオサカ タロウ,2000/01/01,2024/04,2020,3.5,4,5,4.5,これは経歴です。改行も可能です。,これは研修の受講歴です。改行も可能です。,これは備考です。改行も可能です。,HTML,CSS,Java");
         templateHeaders.add("ここから入力↓↓↓↓↓↓↓↓↓↓,,,,,,,,,,,,,,,,,");
@@ -467,8 +468,16 @@ public class CSVHandler {
                             }
                         }
 
-                        // 2個目（社員ID）～14個目（備考）
-                        case 2 -> addErrorMessage(data[0], data[2], EmployeeId::new);
+                        // 2個目（社員ID）
+                        case 2 -> {
+                            if(data[i].isEmpty()) {
+                                errorMessages.add(data[0] + "行目　社員IDは必須入力です。");
+                            } else {
+                                addErrorMessage(data[0], data[i], EmployeeId::new);
+                            }
+                        }
+
+                        // 3個目（氏名）～14個目（備考）
                         case 3 -> addErrorMessage(data[0], data[i], Name::new);
                         case 4 -> addErrorMessage(data[0], data[i], Phonetic::new);
                         case 5 -> addErrorMessage(data[0], data[i], BirthDate::new);
@@ -563,7 +572,6 @@ public class CSVHandler {
         try {
             if(input.isEmpty()) {
                 constructor.apply("");
-
             } else {
                 constructor.apply(input);
             }
