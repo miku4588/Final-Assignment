@@ -164,12 +164,14 @@ public class CSVUI extends JFrame {
             synchronized (LOCK) {
                 CSVHandler csvHandler = new CSVHandler(filePath); // CSVハンドラー
                 List<EmployeeInfo> importEmployeeList = csvHandler.readCSV(false); // 読み込む社員データのリスト
-                if(importEmployeeList == null) {
+                if (importEmployeeList == null) {
                     LOGGER.logOutput("CSV読み込み失敗。再度CSVファイルを指定してください。");
-                }else if (importEmployeeList.isEmpty()) {
+                    // エラーメッセージはreadCSV()の中ですでに表示済み
+                } else if (importEmployeeList.isEmpty()) {
+                    LOGGER.logOutput("データが1件もありません。再度CSVファイルを指定してください。");
                     ErrorHandler.showErrorDialog("データが1件もありません。\n再度CSVファイルを指定してください。");
-                    return;
                 } else {
+                    // 保存確認のダイアログを表示
                     SwingUtilities.invokeLater(() -> {
                         int addCount = csvHandler.addedEmployeeCount;
                         int updateCount = csvHandler.updatedEmployeeCount;
@@ -177,10 +179,12 @@ public class CSVUI extends JFrame {
                     });
                 }
             }
+            // 処理中メッセージを閉じる
+            SwingUtilities.invokeLater(() -> prosessingDialog.dispose());
         }, "CSVimporter");
-        
-        threadLoadData.start(); // サブスレッド開始
-        SwingUtilities.invokeLater(() -> prosessingDialog.dispose());
+
+        // サブスレッド開始
+        threadLoadData.start();
     }
 
     /**
@@ -199,10 +203,15 @@ public class CSVUI extends JFrame {
             synchronized (LOCK) {
                 CSVHandler.writeCSV(employeeList);
             }
+
+            // 処理中メッセージを閉じて、保存完了メッセージを表示
+            SwingUtilities.invokeLater(() -> {
+                prosessingDialog.dispose();
+                showSavedDialog();
+            });
         }, "CSVsaver");
 
-        threadSaveData.start(); // サブスレッド開始
-        SwingUtilities.invokeLater(() -> prosessingDialog.dispose());
-        SwingUtilities.invokeLater(() -> showSavedDialog());
+        // サブスレッド開始
+        threadSaveData.start();
     }    
 }
