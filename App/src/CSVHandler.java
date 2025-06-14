@@ -293,6 +293,7 @@ public class CSVHandler {
             if (exportEmployeeList != null) {
                 LOGGER.logOutput("社員データを入力。");
                 for (int i = 0; i  < exportEmployeeList.size(); i++) {
+                    // 社員情報の先頭に連番(1,2,3…)と空白(追加・更新用の列)を付与して書き込む
                     templateWriter.write(i + 1 + ",," + exportEmployeeList.get(i).toStringUserFields());
                     templateWriter.newLine();
                 }

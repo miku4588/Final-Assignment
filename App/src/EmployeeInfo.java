@@ -60,6 +60,10 @@ class EmployeeInfo {
         this.lastUpdatedDate = lastUpdatedDate;
     }
 
+
+    /**
+     * カンマ区切りで出力するメソッド（作成日・更新日付き）
+     */
     @Override
     public String toString() {
         // String birthDateString = "";
@@ -98,6 +102,10 @@ class EmployeeInfo {
     }
 
 
+    /**
+     * カンマ区切りで出力するメソッド（作成日・更新日なし）
+     * @return 社員ID,氏名,氏名カナ…の形式の文字列
+     */
     public String toStringUserFields() {
 
         // 1列目(No.)と2列目(追加・更新)以外を出力
