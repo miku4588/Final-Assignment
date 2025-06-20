@@ -7,20 +7,30 @@ import java.time.Year;
 class EngineerStartYear extends EmployeeInfoValidator {
     private Year engineerStartYear;
 
-    /**
-     * エンジニアとしての開始年を設定するコンストラクタ。
-     *
-     * @param engineerStartYear エンジニアとしての開始年（YYYY形式）
-     */
     public EngineerStartYear(String engineerStartYear) {
         this.engineerStartYear = Year.parse(engineerStartYear);
+        validate();  // ここで入力チェックを実施
     }
 
-    /**
-     * エンジニアとしての開始年を取得するメソッド。
-     *
-     * @return エンジニアとしての開始年（Year型）
-     */
+    @Override
+    protected void validate() {
+        if (!validateInput(engineerStartYear.toString())) {
+            throw new IllegalArgumentException("エンジニアとしての開始年は過去〜現在の範囲の西暦(YYYY)で入力してください。");
+        }
+    }
+
+    @Override
+    protected boolean validateInput(String engineerStartYear) {
+        try {
+            Year parsed = Year.parse(engineerStartYear);
+            int currentYear = Year.now().getValue();
+            int value = parsed.getValue();
+            return value >= 1950 && value <= currentYear;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public Year getEngineerStartYear() {
         return engineerStartYear;
     }
