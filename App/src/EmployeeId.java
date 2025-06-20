@@ -39,4 +39,12 @@ class EmployeeId extends EmployeeInfoValidator {
     public String getEmployeeId() {
         return employeeId;
     }
+
+    @Override
+protected void validate() {
+    if (!validateInput(employeeId)) {
+        throw new IllegalArgumentException("従業員IDは半角英数字のみ使用できます。");
+    }
+}
+
 }
