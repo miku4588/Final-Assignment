@@ -4,37 +4,42 @@
  */
 class Attitude extends EmployeeInfoValidator {
     private double attitude;
+    private String input;
 
     /**
      * コンストラクタ
-     * @param attitude 態度評価（評価値）
-     * @throws IllegalArgumentException 評価が1〜5の範囲外の場合
+     * @param attitude 態度評価（文字列で受け取る）
      */
     public Attitude(String attitude) {
-        if (!validateInput(attitude)) {
-            throw new IllegalArgumentException("態度評価は1〜5の範囲でなければなりません。");
-        }
-        this.attitude = Double.parseDouble(attitude); // Stringをdoubleに変換
+        this.input = attitude;
     }
 
     /**
-     * 態度評価を検証するメソッド
-     * @param attitude 態度評価（評価値）
-     * @return 態度評価が1〜5の範囲内かどうか
+     * validate: 値の検証と変換処理を行う（抽象メソッドの実装）
+     */
+    @Override
+    protected void validate() {
+        if (!validateInput(input)) {
+            throw new IllegalArgumentException("態度評価は1〜5の範囲でなければなりません。");
+        }
+        this.attitude = Double.parseDouble(input); // バリデーション成功後に変換
+    }
+
+    /**
+     * 入力文字列が1〜5の範囲内かチェック
      */
     @Override
     protected boolean validateInput(String attitude) {
         try {
-            double value = Double.parseDouble(attitude); // Stringをdoubleに変換
-            return value >= 1 && value <= 5; // 範囲をチェック
+            double value = Double.parseDouble(attitude);
+            return value >= 1 && value <= 5;
         } catch (NumberFormatException e) {
-            return false; // 数値変換に失敗した場合は無効とする
+            return false;
         }
     }
 
     /**
-     * 態度評価を取得するメソッド
-     * @return 態度評価
+     * 態度評価の数値を取得
      */
     public double getAttitude() {
         return attitude;
