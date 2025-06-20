@@ -1,8 +1,10 @@
+
 /**
  * 従業員に関する備考情報を管理するクラス。
  * 備考情報のバリデーションを行い、正しい場合に備考情報を保持。
  */
-class Remarks extends EmployeeInfoValidator {
+public class Remarks extends EmployeeInfoValidator {
+
     private String remarks;
 
     /**
@@ -28,7 +30,14 @@ class Remarks extends EmployeeInfoValidator {
      */
     @Override
     protected boolean validateInput(String remarks) {
-        return validateLength(remarks, 0, 500);
+        return validateLength(remarks, 1, 500);
+    }
+
+    @Override
+    protected void validate() {
+        if (remarks == null || !validateInput(remarks)) {
+            throw new IllegalArgumentException("備考は1〜500文字以内で入力してください。");
+        }
     }
 
     /**
