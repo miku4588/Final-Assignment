@@ -78,6 +78,8 @@ public abstract class EmployeeInfoValidator {
         return value != null && !value.trim().isEmpty();
     }
 
+    
+
     /**
      * double 型の技術スキルを検証するメソッド。
      * 技術スキルは1から5の範囲であることを確認する。
@@ -89,4 +91,6 @@ public abstract class EmployeeInfoValidator {
         // 技術スキルが1以上5以下の範囲であることをチェック
         return value >= 1 && value <= 5;
     }
+
+    protected abstract void validate();
 }
