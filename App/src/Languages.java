@@ -1,56 +1,39 @@
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * ユーザーが任意のプログラミング言語を追加し、管理するクラス。
- */
 public class Languages {
-    private Set<String> languages; // プログラミング言語のセット
 
-    /**
-     * コンストラクタ
-     */
+    public static final String[] VALID_LANGUAGES = new String[0];
+    private Set<String> languages; // インスタンス変数（プログラミング言語のセット）
+
+    // コンストラクタ
     public Languages() {
-        this.languages = new HashSet<>(); // 空のセットを初期化
+        this.languages = new HashSet<>(); // 初期化
     }
 
-    /**
-     * プログラミング言語を追加するメソッド。
-     *
-     * @param language 追加するプログラミング言語
-     * @return 追加成功なら true、失敗なら false
-     */
+    // 1つの言語を追加
     public boolean addLanguage(String language) {
         if (language != null && !language.trim().isEmpty()) {
-            languages.add(language.trim()); // 言語をセットに追加（前後の空白をトリム）
-            return true; // 追加成功
+            languages.add(language.trim());
+            return true;
         }
-        System.out.println("無効な言語です: " + language); // エラーメッセージ
-        return false; // 追加失敗
+        System.out.println("無効な言語です: " + language);
+        return false;
     }
 
-    /**
-     * 複数のプログラミング言語を一括追加するメソッド。
-     *
-     * @param languagesList 追加するプログラミング言語のセット
-     * @return 追加成功した言語のセット
-     */
+    // 複数言語を追加
     public Set<String> addLanguages(Set<String> languagesList) {
-        Set<String> addedLanguages = new HashSet<>(); // 追加成功した言語のセット
+        Set<String> addedLanguages = new HashSet<>();
         for (String language : languagesList) {
             if (addLanguage(language)) {
-                addedLanguages.add(language); // 追加成功した言語をセットに追加
+                addedLanguages.add(language);
             }
         }
-        return addedLanguages; // 追加成功した言語のセットを返す
+        return addedLanguages;
     }
 
-    /**
-     * 扱えるプログラミング言語のセットを取得するメソッド。
-     *
-     * @return プログラミング言語のセット
-     */
+    // 登録済み言語を取得
     public Set<String> getLanguages() {
-        return new HashSet<>(languages); // 言語のセットを返す
+        return new HashSet<>(languages); // コピーを返す（外部からの書き換え防止）
     }
 }
