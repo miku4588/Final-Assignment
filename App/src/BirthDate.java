@@ -1,5 +1,6 @@
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 /**
  * 生年月日を管理するクラス。
@@ -7,39 +8,45 @@ import java.time.format.DateTimeFormatter;
  */
 class BirthDate extends EmployeeInfoValidator {
     private LocalDate birthDate;
+    private String input;
 
     /**
-     * 生年月日を設定するコンストラクタ。
-     * 生年月日のバリデーションを行い、無効な場合は例外をスロー。
-     *
-     * @param birthDate 生年月日（YYYY/MM/DD形式）
-     * @throws IllegalArgumentException 生年月日が無効な場合（YYYY/MM/DD形式で入力されていない）
+     * コンストラクタ：文字列入力を受け取って内部保存
      */
     public BirthDate(String birthDate) {
-        if (!validateInput(birthDate)) {
-            throw new IllegalArgumentException("生年月日はYYYY/MM/DD形式で入力してください。");
-        }
-        this.birthDate = LocalDate.parse(birthDate, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        this.input = birthDate;
     }
 
     /**
-     * 生年月日のバリデーションを行う。
-     * 生年月日はYYYY/MM/DD形式。
-     *
-     * @param birthDate 生年月日（文字列）
-     * @return 生年月日が有効かどうか（YYYY/MM/DD形式であればtrue）
+     * validate: 入力をチェックして LocalDate に変換
      */
     @Override
-    protected boolean validateInput(String birthDate) {
-        return validateFormat(birthDate, "YYYY/MM/DD");
+    protected void validate() {
+        if (!validateInput(input)) {
+            throw new IllegalArgumentException("生年月日は yyyy/MM/dd 形式で入力してください。");
+        }
+        this.birthDate = LocalDate.parse(input, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
     }
 
     /**
-     * 生年月日を取得するメソッド。
-     *
-     * @return 生年月日（LocalDate型）
+     * 生年月日のフォーマットを検証
      */
+    @Override
+    protected boolean validateInput(String dateStr) {
+        try {
+            LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+            return true;
+        } catch (DateTimeParseException e) {
+            return false;
+        }
+    }
+
     public LocalDate getBirthDate() {
         return birthDate;
+    }
+
+    @Override
+    protected boolean validateLength(String value, int min, int max) {
+        return value != null && value.length() >= min && value.length() <= max;
     }
 }
