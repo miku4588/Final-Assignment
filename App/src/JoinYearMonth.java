@@ -1,29 +1,41 @@
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
-/**
- * 従業員の入社年月を管理するクラス。
- * 入社年月のバリデーションを行い、正しい場合に入社年月を保持。
- */
 class JoinYearMonth extends EmployeeInfoValidator {
     private YearMonth joinYearMonth;
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM");
 
-    /**
-     * 入社年月を設定するコンストラクタ。
-     * 入社年月のフォーマットが無効な場合は例外をスロー。
-     *
-     * @param joinYearMonth 入社年月（YYYY/MM形式）
-     */
     public JoinYearMonth(String joinYearMonth) {
-        this.joinYearMonth = YearMonth.parse(joinYearMonth, DateTimeFormatter.ofPattern("yyyy/MM"));
+        if (!validateInput(joinYearMonth)) {
+            throw new IllegalArgumentException("入社年月はYYYY/MM形式で入力してください。");
+        }
+        this.joinYearMonth = YearMonth.parse(joinYearMonth, FORMATTER);
     }
 
-    /**
-     * 入社年月を取得するメソッド。
-     *
-     * @return 入社年月（YearMonth型）
-     */
+    @Override
+    protected boolean validateInput(String value) {
+        if (value == null) return false;
+        try {
+            YearMonth.parse(value, FORMATTER);
+            return true;
+        } catch (DateTimeParseException e) {
+            return false;
+        }
+    }
+
+    @Override
+    protected void validate() {
+        // ここで必要な追加バリデーションがあれば実装（例：過去かどうかなど）
+        // もし特に無ければ空でOK
+    }
+
     public YearMonth getJoinYearMonth() {
         return joinYearMonth;
+    }
+
+    @Override
+    protected boolean validateLength(String value, int min, int max) {
+        return value != null && value.length() >= min && value.length() <= max;
     }
 }
