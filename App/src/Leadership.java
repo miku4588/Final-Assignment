@@ -5,38 +5,40 @@
 class Leadership extends EmployeeInfoValidator {
     private double leadership;
 
-    /**
-     * コンストラクタ
-     * @param leadership リーダーシップ評価（評価値）
-     * @throws IllegalArgumentException 評価が1〜5の範囲外の場合
-     */
     public Leadership(String leadership) {
-        // Stringからdoubleに変換し、バリデーションを行う
-        if (!validateLeadership(leadership)) {
+        if (leadership == null) {
+            throw new IllegalArgumentException("リーダーシップ評価は必須です。");
+        }
+        if (!validateInput(leadership)) {
             throw new IllegalArgumentException("リーダーシップ評価は1〜5の範囲でなければなりません。");
         }
-        this.leadership = Double.parseDouble(leadership); // Stringをdoubleに変換
+        this.leadership = Double.parseDouble(leadership);
+        validate();  // 追加：全体バリデーション（必要に応じて拡張）
     }
 
-    /**
-     * リーダーシップ評価を検証するメソッド
-     * @param leadership リーダーシップ評価（評価値）
-     * @return リーダーシップ評価が1〜5の範囲内かどうか
-     */
-    protected boolean validateLeadership(String leadership) {
+    @Override
+    protected boolean validateInput(String leadership) {
         try {
-            double value = Double.parseDouble(leadership); // Stringをdoubleに変換
-            return value >= 1 && value <= 5; // 範囲をチェック
+            double value = Double.parseDouble(leadership);
+            return value >= 1 && value <= 5;
         } catch (NumberFormatException e) {
-            return false; // 数値変換に失敗した場合は無効とする
+            return false;
         }
     }
 
-    /**
-     * リーダーシップ評価を取得するメソッド
-     * @return リーダーシップ評価
-     */
+    @Override
+    protected void validate() {
+        // 今は特に追加バリデーションなし。
+        // 例えば将来的に範囲外エラーの再チェックなどを入れる場合はこちらに。
+    }
+
     public double getLeadership() {
         return leadership;
+    }
+
+    @Override
+    protected boolean validateLength(String value, int min, int max) {
+        // 評価値は数値なので文字数チェックは不要かもですが、一応オーバーライド
+        return value != null && value.length() >= min && value.length() <= max;
     }
 }
