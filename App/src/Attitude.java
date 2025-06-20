@@ -8,31 +8,20 @@ class Attitude extends EmployeeInfoValidator {
 
     /**
      * コンストラクタ
-     * @param attitude 態度評価（文字列で受け取る）
+     * @param input 態度評価（文字列で受け取る）
      */
-    public Attitude(String attitude) {
-        this.input = attitude;
-    }
-
-    /**
-     * validate: 値の検証と変換処理を行う（抽象メソッドの実装）
-     */
-    @Override
-    protected void validate() {
-        if (!validateInput(input)) {
-            throw new IllegalArgumentException("態度評価は1〜5の範囲でなければなりません。");
-        }
-        this.attitude = Double.parseDouble(input); // バリデーション成功後に変換
+    public Attitude(String input) {
+        this.input = input;
     }
 
     /**
      * 入力文字列が1〜5の範囲内かチェック
      */
     @Override
-    protected boolean validateInput(String attitude) {
+    protected boolean validateInput(String hoge) {
         try {
-            double value = Double.parseDouble(attitude);
-            return value >= 1 && value <= 5;
+            attitude = Double.parseDouble(input);
+            return attitude >= 1 && attitude <= 5;
         } catch (NumberFormatException e) {
             return false;
         }
