@@ -4,47 +4,37 @@
  */
 public class Name extends EmployeeInfoValidator {
 
-    // 従業員の名前を格納するフィールド
     private String name;
+    private String input;
 
-    /**
-     * 名前を設定するコンストラクタ。
-     * 名前のバリデーションを行い、無効な場合は例外をスロー。
-     *
-     * @param name 名前（従業員の名前）
-     * @throws IllegalArgumentException 名前が無効な場合（1〜20文字の範囲内のみ許可）
-     */
-    public Name(String name) {
-        // 名前が有効かどうかをチェック
-        if (!validateInput(name)) {
-            // 無効な場合は例外を投げる
-            throw new IllegalArgumentException("名前は1〜20文字の範囲でのみ使用できます。");
-        }
-        // 名前が有効ならフィールドにセット
-        this.name = name;
+    public Name(String input) {
+        this.input = input;
     }
 
     /**
-     * 名前のバリデーションを行います。
-     * 名前は1〜20文字以内のみ許可。
-     *
-     * @param name 名前（従業員の名前）
-     * @return 名前が有効かどうか（1〜20文字の範囲の場合は true）
+     * validate() を実装し、バリデーション処理を実行。
+     */
+    @Override
+    protected void validate() {
+        if (!validateInput(input)) {
+            throw new IllegalArgumentException("名前は1〜20文字の範囲で入力してください。");
+        }
+        this.name = input;
+    }
+
+    /**
+     * 入力された名前が1〜20文字かチェック。
      */
     @Override
     protected boolean validateInput(String name) {
-        // 長さチェック（1〜20文字）
-        if (!validateLength(name, 1, 20)) {
-            return false;
-        } else {
-            return true;
-        }
+        return validateLength(name, 1, 20);
     }
-    /**
-     * 名前を取得するメソッド。
-     *
-     * @return 従業員の名前
-     */
+
+    @Override
+    protected boolean validateLength(String value, int min, int max) {
+        return value != null && value.length() >= min && value.length() <= max;
+    }
+
     public String getName() {
         return name;
     }
