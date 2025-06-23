@@ -84,9 +84,9 @@ public class DetailViewUI extends JFrame {
                 joinYearMonthString = targetEmployee.getJoinYearMonth().format(DateTimeFormatter.ofPattern("yyyy年MM月"));
             }
 
-            String engineerStartYear = targetEmployee.getEngineerStartYear().format(DateTimeFormatter.ofPattern("yyyy年"));
-            if (targetEmployee.getJoinYearMonth() != null) {
-                engineerStartYear = targetEmployee.getJoinYearMonth().format(DateTimeFormatter.ofPattern("yyyy年MM月"));
+            String engineerStartYearString = null;
+            if (targetEmployee.getEngineerStartYear() != null) {
+                engineerStartYearString = targetEmployee.getEngineerStartYear().format(DateTimeFormatter.ofPattern("yyyy年"));
             }
 
             double technicalSkillDouble = targetEmployee.getTechnicalSkill();
@@ -112,7 +112,7 @@ public class DetailViewUI extends JFrame {
             addSelectableField(leftPanel, "氏名：", targetEmployee.getName());
             addSelectableField(leftPanel, "生年月日：", birthDateString);
             addSelectableField(leftPanel, "入社年月：", joinYearMonthString);                    
-            addSelectableField(leftPanel, "エンジニア開始年：", engineerStartYear);
+            addSelectableField(leftPanel, "エンジニア開始年：", engineerStartYearString);
             addSelectableField(leftPanel, "扱える言語：", String.join(",", targetEmployee.getLanguages()));
             addSelectableField(leftPanel, "技術力：", technicalSkill + " / 5");
             addSelectableField(leftPanel, "受講態度：", attitude + " / 5");
