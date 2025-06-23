@@ -137,7 +137,7 @@ public class DetailViewUI extends JFrame {
             // 下部パネル
             JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
-            String creationDateString = null;
+            String creationDateString = "";
             if(targetEmployee.getCreationDate() != null) {
                 creationDateString = targetEmployee.getCreationDate().format(DateTimeFormatter.ofPattern("yyyy年MM月dd日"));
             }
@@ -145,11 +145,11 @@ public class DetailViewUI extends JFrame {
 
             bottomPanel.add(Box.createHorizontalStrut(10)); // 余白
 
-            String lastUpdatedDateString = null;
+            String lastUpdatedDateString = "";
             if(targetEmployee.getLastUpdatedDate() != null) {
-                targetEmployee.getLastUpdatedDate().format(DateTimeFormatter.ofPattern("yyyy年MM月dd日"));
+                lastUpdatedDateString = "最終更新日：" + targetEmployee.getLastUpdatedDate().format(DateTimeFormatter.ofPattern("yyyy年MM月dd日"));
             }
-            bottomPanel.add(new JLabel("最終更新日：" + lastUpdatedDateString));
+            bottomPanel.add(new JLabel(lastUpdatedDateString));
             
             add(bottomPanel, BorderLayout.SOUTH);
 
