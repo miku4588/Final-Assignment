@@ -74,9 +74,20 @@ public class DetailViewUI extends JFrame {
             add(topPanel, BorderLayout.NORTH);
 
             // 日時系、数値系の項目の値を表示用に整える
-            String birthDateString = targetEmployee.getBirthDate().format(DateTimeFormatter.ofPattern("yyyy年MM月dd日"));
-            String joinYearMonthString = targetEmployee.getJoinYearMonth().format(DateTimeFormatter.ofPattern("yyyy年MM月"));
+            String birthDateString = null;
+            if (targetEmployee.getBirthDate() != null) {
+                birthDateString = targetEmployee.getBirthDate().format(DateTimeFormatter.ofPattern("yyyy年MM月dd日"));
+            }
+
+            String joinYearMonthString = null;
+            if (targetEmployee.getJoinYearMonth() != null) {
+                joinYearMonthString = targetEmployee.getJoinYearMonth().format(DateTimeFormatter.ofPattern("yyyy年MM月"));
+            }
+
             String engineerStartYear = targetEmployee.getEngineerStartYear().format(DateTimeFormatter.ofPattern("yyyy年"));
+            if (targetEmployee.getJoinYearMonth() != null) {
+                engineerStartYear = targetEmployee.getJoinYearMonth().format(DateTimeFormatter.ofPattern("yyyy年MM月"));
+            }
 
             double technicalSkillDouble = targetEmployee.getTechnicalSkill();
             double attitudeDouble = targetEmployee.getAttitude();
@@ -125,11 +136,21 @@ public class DetailViewUI extends JFrame {
 
             // 下部パネル
             JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-            bottomPanel.add(new JLabel(
-                    "データ作成日：" + targetEmployee.getCreationDate().format(DateTimeFormatter.ofPattern("yyyy年MM月dd日"))));
+
+            String creationDateString = null;
+            if(targetEmployee.getCreationDate() != null) {
+                creationDateString = targetEmployee.getCreationDate().format(DateTimeFormatter.ofPattern("yyyy年MM月dd日"));
+            }
+            bottomPanel.add(new JLabel("データ作成日：" + creationDateString));
+
             bottomPanel.add(Box.createHorizontalStrut(10)); // 余白
-            bottomPanel.add(new JLabel(
-                    "最終更新日：" + targetEmployee.getLastUpdatedDate().format(DateTimeFormatter.ofPattern("yyyy年MM月dd日"))));
+
+            String lastUpdatedDateString = null;
+            if(targetEmployee.getLastUpdatedDate() != null) {
+                targetEmployee.getLastUpdatedDate().format(DateTimeFormatter.ofPattern("yyyy年MM月dd日"));
+            }
+            bottomPanel.add(new JLabel("最終更新日：" + lastUpdatedDateString));
+            
             add(bottomPanel, BorderLayout.SOUTH);
 
             // 一覧に戻るボタンにイベントリスナーを追加
@@ -140,7 +161,6 @@ public class DetailViewUI extends JFrame {
 
             // 編集ボタンにイベントリスナーを追加
             editButton.addActionListener(e -> {
-// 💡💡💡💡💡編集画面の表示は作成途中
                 setVisible(false);
                 new AddEditUI();
             });

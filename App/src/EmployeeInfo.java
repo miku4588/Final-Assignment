@@ -66,14 +66,14 @@ class EmployeeInfo {
      */
     @Override
     public String toString() {
-        // String birthDateString = "";
-        // if(getBirthDate() != null) {birthDateString = getBirthDate().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));}
+        String birthDateString = "";
+        if(getBirthDate() != null) {birthDateString = getBirthDate().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));}
 
-        // String joinYearMonthString = "";
-        // if(getJoinYearMonth() != null) {birthDateString = getJoinYearMonth().format(DateTimeFormatter.ofPattern("yyyy/MM"));}
+        String joinYearMonthString = "";
+        if(getJoinYearMonth() != null) {joinYearMonthString = getJoinYearMonth().format(DateTimeFormatter.ofPattern("yyyy/MM"));}
 
-        // String engineerStartYearString = "";
-        // if(getEngineerStartYear() != null) {engineerStartYearString = getEngineerStartYear().format(DateTimeFormatter.ofPattern("yyyy"));}
+        String engineerStartYearString = "";
+        if(getEngineerStartYear() != null) {engineerStartYearString = getEngineerStartYear().format(DateTimeFormatter.ofPattern("yyyy"));}
 
         String creationDateString = "";
         if(getCreationDate() != null) {creationDateString = getCreationDate().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));}
@@ -88,9 +88,9 @@ class EmployeeInfo {
                getEmployeeId() + "," +
                getName() + "," +
                getPhonetic() + "," +
-               getBirthDate().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")) + "," +
-               getJoinYearMonth().format(DateTimeFormatter.ofPattern("yyyy/MM")) + "," +
-               getEngineerStartYear() + "," +
+               birthDateString + "," +
+               joinYearMonthString + "," +
+               engineerStartYearString + "," +
                getTechnicalSkill() + "," +
                getAttitude() + "," +
                getCommunicationSkill() + "," +
