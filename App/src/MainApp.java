@@ -46,7 +46,6 @@ public class MainApp {
             new ListViewUI(EmployeeManager.getInstance());
         } catch (IllegalStateException e) {
             LOGGER.logOutput("データが不正のため一覧画面の表示を中止します。");
-            ErrorHandler.showErrorDialog("データが不正のためアプリの表示を中止します。");
         }
     }
 

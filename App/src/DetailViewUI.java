@@ -140,7 +140,7 @@ public class DetailViewUI extends JFrame {
 
             // 編集ボタンにイベントリスナーを追加
             editButton.addActionListener(e -> {
-                // 💡💡💡💡💡編集画面の表示は作成途中
+// 💡💡💡💡💡編集画面の表示は作成途中
                 setVisible(false);
                 new AddEditUI();
             });
@@ -240,10 +240,7 @@ public class DetailViewUI extends JFrame {
             // 確定ボタンにイベントリスナーを追加
             deleteConfirmButton.addActionListener(e -> {
                 deleteDialog.dispose();// 確認ダイアログ終了
-// 💡💡💡💡💡これでいいんだろうか
-                CSVHandler csvHandler = new CSVHandler(MainApp.DATA_FILE); // CSVハンドラー
-                EmployeeDeleter employeeDeleter = new EmployeeDeleter(csvHandler); // 削除クラスのインスタンス
-                employeeDeleter.deleteEmployee(EmployeeIdString); // 削除
+                EmployeeDeleter.deleteEmployee(EmployeeIdString); // 削除
                 new ListViewUI(EmployeeManager.getInstance());
             });
 
