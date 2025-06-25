@@ -40,6 +40,10 @@ public class DetailViewUI extends JFrame {
         return null;
     }
 
+    /**
+     * 詳細画面を表示させる
+     * @param targetEmployee
+     */
     private void displayDetailViewUI(EmployeeInfo targetEmployee) {
         // 画面に関する処理はinvokeLaterで囲むのが安全
         SwingUtilities.invokeLater(() -> {
@@ -167,7 +171,7 @@ public class DetailViewUI extends JFrame {
 
             // 削除ボタンにイベントリスナーを追加
             deleteButton.addActionListener(e -> {
-                showDeleteDialog(targetEmployee.getEmployeeId());
+                showConfirmDialog(targetEmployee.getEmployeeId());
             });
 
             // 表示させる
@@ -175,6 +179,7 @@ public class DetailViewUI extends JFrame {
             LOGGER.logOutput("詳細情報画面を表示。");
         });
     }
+
 
     /**
      * 値が選択可能（編集は不可）な項目行をパネルに追加する
@@ -232,7 +237,12 @@ public class DetailViewUI extends JFrame {
         panel.add(valuScrollPane);
     }
 
-    private void showDeleteDialog(String EmployeeIdString) {
+
+    /**
+     * 削除確認ダイアログ
+     * @param EmployeeIdString
+     */
+    private void showConfirmDialog(String EmployeeIdString) {
         // 画面に関する処理はinvokeLaterで囲むのが安全
         SwingUtilities.invokeLater(() -> {
             // ダイアログ
@@ -260,8 +270,7 @@ public class DetailViewUI extends JFrame {
             // 確定ボタンにイベントリスナーを追加
             deleteConfirmButton.addActionListener(e -> {
                 deleteDialog.dispose();// 確認ダイアログ終了
-                EmployeeDeleter.deleteEmployee(EmployeeIdString); // 削除
-                new ListViewUI(EmployeeManager.getInstance());
+                showDeletingingDialog(EmployeeIdString);
             });
 
             // キャンセルボタンにイベントリスナーを追加
@@ -273,4 +282,44 @@ public class DetailViewUI extends JFrame {
             deleteDialog.setVisible(true); // 可視化
         });
     }
+
+    /**
+     * 処理中メッセージを初期化する
+     */
+    private void showDeletingingDialog(String EmployeeIdString) {
+
+        JDialog deletingDialog = new JDialog(this, true); // true…親ウィンドウの操作をブロック
+        deletingDialog.setUndecorated(true); // タイトルバーを消す（×ボタンも消える）
+
+        JPanel deletingPanel = new JPanel();
+        deletingPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK)); // 黒い枠線
+        deletingPanel.add(new JLabel("削除中です。"));
+
+        deletingDialog.getContentPane().add(deletingPanel);
+        deletingDialog.pack(); // ウィンドウサイズ自動調整
+        deletingDialog.setLocationRelativeTo(this); // 表示位置は親ウィンドウが基準
+
+        SwingUtilities.invokeLater(() -> deletingDialog.setVisible(true)); // 可視化
+
+        // 削除終わったら削除中メッセージを消す
+        if (EmployeeDeleter.deleteEmployee(EmployeeIdString)) {
+            SwingUtilities.invokeLater(() -> {
+                deletingDialog.dispose();
+                this.dispose();
+                showDeletedDialog();
+            });
+        }
+    }
+
+
+    /**
+     * 保存完了メッセージを表示する
+     */
+    private void showDeletedDialog() {
+
+        // JOptionPaneで十分そうなのでこれにしています。
+        // 今後の変更によりJOptionPaneでは表現できなくなる場合は、JDialogに変更します。
+        JOptionPane.showMessageDialog(this, "削除が完了しました。", "削除完了", JOptionPane.INFORMATION_MESSAGE);
+    }
+
 }
