@@ -110,9 +110,9 @@ public class CSVHandler {
 
     /**
      * CSVファイルに、リストから一括で社員データを書き込む
-     * @param inputEmployeeList
+     * @param finalEmployeeList
      */
-    public static void writeCSV(List<EmployeeInfo> inputEmployeeList) {
+    public static void writeCSV(List<EmployeeInfo> finalEmployeeList) {
         LOGGER.logOutput("データCSVファイルへの書き込みを開始。");
         
         // スレッドを定義
@@ -120,21 +120,6 @@ public class CSVHandler {
             // データCSVのパスと、バックアップファイルのパスを定義
             Path originalPath = Paths.get(MainApp.DATA_FILE);
             Path backupPath = Paths.get(originalPath + ".bak");
-            
-            // 最終的にCSVに書き込みたいStringリストを定義
-            List<EmployeeInfo> finalEmployeeList = new ArrayList<>(EmployeeManager.getEmployeeList());
-            
-
-            // 各要素をfinalEmployeeListに追加（更新の場合は既存データと差し替え）
-            for (EmployeeInfo inputEmployee : inputEmployeeList) {
-                if (inputEmployee.getLastUpdatedDate() == null) { // 最終更新日がnullなら新規追加
-                    finalEmployeeList.add(inputEmployee);
-                } else {
-                    finalEmployeeList.removeIf(
-                            removeEmployee -> removeEmployee.getEmployeeId().equals(inputEmployee.getEmployeeId()));
-                    finalEmployeeList.add(inputEmployee);
-                }
-            }
             
             // finalEmployeeListをCSVに書き込む
             saveEmployeeListToCSV(finalEmployeeList, originalPath, backupPath);

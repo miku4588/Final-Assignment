@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 
 // JFrameを継承する
@@ -102,6 +103,46 @@ public class CSVUI extends JFrame {
 
 
     /**
+     * ユーザーが選択したCSVファイルを読み込んで、保存確認のダイアログを表示する
+     * @param filePath
+     */
+    private void loadCSV(String filePath) {
+
+        // 処理中メッセージ表示
+        initializeProsessingDialog("CSVファイルを読み込み中です。");
+        SwingUtilities.invokeLater(() -> prosessingDialog.setVisible(true));
+
+        // サブスレッド生成
+        Thread threadLoadData = new Thread(() -> {
+            // ロックを取得
+            synchronized (LOCK) {
+                CSVHandler csvHandler = new CSVHandler(filePath); // CSVハンドラー
+                List<EmployeeInfo> importEmployeeList = csvHandler.readCSV(false); // 読み込む社員データのリスト
+                if (importEmployeeList == null) {
+                    LOGGER.logOutput("CSV読み込み失敗。再度CSVファイルを指定してください。");
+                    // エラーメッセージはreadCSV()の中ですでに表示済み
+                } else if (importEmployeeList.isEmpty()) {
+                    LOGGER.logOutput("データが1件もありません。再度CSVファイルを指定してください。");
+                    ErrorHandler.showErrorDialog("データが1件もありません。\n再度CSVファイルを指定してください。");
+                } else {
+                    // 保存確認のダイアログを表示
+                    SwingUtilities.invokeLater(() -> {
+                        int addCount = csvHandler.addedEmployeeCount;
+                        int updateCount = csvHandler.updatedEmployeeCount;
+                        showConfirmDialog(addCount, updateCount, importEmployeeList);
+                    });
+                }
+            }
+            // 処理中メッセージを閉じる
+            SwingUtilities.invokeLater(() -> prosessingDialog.dispose());
+        }, "CSVimporter");
+
+        // サブスレッド開始
+        threadLoadData.start();
+    }
+
+
+    /**
      * 確認ダイアログを表示する
      * @param addCount 追加人数
      * @param updateCount 更新人数
@@ -150,43 +191,6 @@ public class CSVUI extends JFrame {
     }
 
 
-
-
-    private void loadCSV(String filePath) {
-
-        // 処理中メッセージ表示
-        initializeProsessingDialog("CSVファイルを読み込み中です。");
-        SwingUtilities.invokeLater(() -> prosessingDialog.setVisible(true));
-
-        // サブスレッド生成
-        Thread threadLoadData = new Thread(() -> {
-            // ロックを取得
-            synchronized (LOCK) {
-                CSVHandler csvHandler = new CSVHandler(filePath); // CSVハンドラー
-                List<EmployeeInfo> importEmployeeList = csvHandler.readCSV(false); // 読み込む社員データのリスト
-                if (importEmployeeList == null) {
-                    LOGGER.logOutput("CSV読み込み失敗。再度CSVファイルを指定してください。");
-                    // エラーメッセージはreadCSV()の中ですでに表示済み
-                } else if (importEmployeeList.isEmpty()) {
-                    LOGGER.logOutput("データが1件もありません。再度CSVファイルを指定してください。");
-                    ErrorHandler.showErrorDialog("データが1件もありません。\n再度CSVファイルを指定してください。");
-                } else {
-                    // 保存確認のダイアログを表示
-                    SwingUtilities.invokeLater(() -> {
-                        int addCount = csvHandler.addedEmployeeCount;
-                        int updateCount = csvHandler.updatedEmployeeCount;
-                        showConfirmDialog(addCount, updateCount, importEmployeeList);
-                    });
-                }
-            }
-            // 処理中メッセージを閉じる
-            SwingUtilities.invokeLater(() -> prosessingDialog.dispose());
-        }, "CSVimporter");
-
-        // サブスレッド開始
-        threadLoadData.start();
-    }
-
     /**
      * 読み込んだCSVファイルの保存処理
      * @param employeeList
@@ -199,9 +203,24 @@ public class CSVUI extends JFrame {
 
         // サブスレッド生成
         Thread threadSaveData = new Thread(() -> {
+
+            // 最終的にCSVに書き込みたいStringリストを定義
+            List<EmployeeInfo> finalEmployeeList = new ArrayList<>(EmployeeManager.getEmployeeList());
+
+            // 各要素をfinalEmployeeListに追加（更新の場合は既存データと差し替え）
+            for (EmployeeInfo employee : employeeList) {
+                if (employee.getLastUpdatedDate() == null) { // 最終更新日がnullなら新規追加
+                    finalEmployeeList.add(employee);
+                } else {
+                    finalEmployeeList.removeIf(
+                            removeEmployee -> removeEmployee.getEmployeeId().equals(employee.getEmployeeId()));
+                    finalEmployeeList.add(employee);
+                }
+            }
+
             // ロックを取得
             synchronized (LOCK) {
-                CSVHandler.writeCSV(employeeList);
+                CSVHandler.writeCSV(finalEmployeeList);
             }
 
             // 処理中メッセージを閉じて、保存完了メッセージを表示
