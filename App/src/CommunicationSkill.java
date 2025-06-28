@@ -1,17 +1,8 @@
 class CommunicationSkill extends EmployeeInfoValidator {
     private double communicationSkill;
-    private String input;
 
     public CommunicationSkill(String communicationSkill) {
-        this.input = communicationSkill;
-    }
-
-    @Override
-    protected void validate() {
-        if (!validateInput(input)) {
-            throw new IllegalArgumentException("コミュニケーションスキル評価は1〜5の範囲でなければなりません。");
-        }
-        this.communicationSkill = Double.parseDouble(input);
+        this.communicationSkill = Double.parseDouble(communicationSkill);
     }
 
     @Override
