@@ -1,4 +1,5 @@
 import java.time.LocalDate;
+//import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
@@ -8,25 +9,13 @@ import java.time.format.DateTimeParseException;
  */
 class BirthDate extends EmployeeInfoValidator {
     private LocalDate birthDate;
-    private String input;
 
-    /**
-     * コンストラクタ：文字列入力を受け取って内部保存
-     */
-    public BirthDate(String birthDate) {
-        this.input = birthDate;
-    }
-
-    /**
-     * validate: 入力をチェックして LocalDate に変換
-     */
-    @Override
-    protected void validate() {
-        if (!validateInput(input)) {
-            throw new IllegalArgumentException("生年月日は yyyy/MM/dd 形式で入力してください。");
-        }
-        this.birthDate = LocalDate.parse(input, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-    }
+ public BirthDate(String birthString) {
+   // if (!validateInput(birthString)) {
+        //throw new IllegalArgumentException("生年月日のフォーマットが正しくありません");
+//}
+    this.birthDate = LocalDate.parse(birthString, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+}
 
     /**
      * 生年月日のフォーマットを検証
@@ -45,8 +34,4 @@ class BirthDate extends EmployeeInfoValidator {
         return birthDate;
     }
 
-    @Override
-    protected boolean validateLength(String value, int min, int max) {
-        return value != null && value.length() >= min && value.length() <= max;
-    }
 }
