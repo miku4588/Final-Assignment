@@ -15,7 +15,7 @@ public abstract class EmployeeInfoValidator {
      * @param maxLength 最大長さ
      * @return 文字列が指定された長さの範囲内であれば true、それ以外は false
      */
-    protected boolean validateLength(String value, int minLength, int maxLength) {
+    public boolean validateLength(String value, int minLength, int maxLength) {
         // 文字列がnullでなく、指定された長さの範囲内に収まっているかをチェック
         return value != null && value.length() >= minLength && value.length() <= maxLength;
     }
@@ -51,7 +51,7 @@ public abstract class EmployeeInfoValidator {
      * @param format 文字列の形式（"YYYY/MM/DD"など）
      * @return 文字列が指定された形式に合致する場合は true、それ以外は false
      */
-    protected boolean validateFormat(String value, String format) {
+    protected  boolean validateFormat(String value, String format) {
         // 形式が "YYYY/MM/DD" の場合
         if ("YYYY/MM/DD".equals(format)) {
             try {
@@ -87,10 +87,10 @@ public abstract class EmployeeInfoValidator {
      * @param value 検証対象の技術スキル評価（double型）
      * @return 技術スキルが1〜5の範囲内であれば true、それ以外は false
      */
-    protected boolean validateInput(double value) {
+    protected  boolean validateInput(double value) {
         // 技術スキルが1以上5以下の範囲であることをチェック
         return value >= 1 && value <= 5;
     }
 
-    protected abstract void validate();
+    //protected abstract void validate(); 中身がないと実装しないとエラーになる
 }
