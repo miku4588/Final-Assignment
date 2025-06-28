@@ -5,14 +5,6 @@
 class TrainingHistory extends EmployeeInfoValidator {
     private String trainingHistory;
 
-    @Override
-protected void validate() {
-    if (trainingHistory == null || !validateInput(trainingHistory)) {
-        throw new IllegalArgumentException("研修履歴は1〜500文字以内で入力してください。");
-    }
-}
-
-
     /**
      * 研修履歴を設定するコンストラクタ。
      * 研修履歴のバリデーションを行い、無効な場合は例外をスロー。
@@ -36,7 +28,7 @@ protected void validate() {
      */
     @Override
     protected boolean validateInput(String trainingHistory) {
-        return validateLength(trainingHistory, 1, 500);
+        return validateLength(trainingHistory, 0, 500);
     }
 
     /**
