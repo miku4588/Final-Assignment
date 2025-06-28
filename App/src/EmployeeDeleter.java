@@ -6,7 +6,7 @@ import java.util.Iterator;
  * 社員情報を削除するクラス
  */
 public class EmployeeDeleter {
-    private CSVHandler csvHandler;
+    //private CSVHandler csvHandler;
 
     // ロガー取得
     private static final EmployeeInfoLogger LOGGER = EmployeeInfoLogger.getInstance();
