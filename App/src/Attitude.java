@@ -33,4 +33,5 @@ class Attitude extends EmployeeInfoValidator {
     public double getAttitude() {
         return attitude;
     }
+
 }
