@@ -1,43 +1,26 @@
-import java.util.HashSet;
-import java.util.Set;
+/**
+ * 従業員のリーダーシップ評価を管理するクラス。
+ * リーダーシップ評価を保持。
+ */
+class Leadership extends EmployeeInfoValidator {
+    private double leadership;
 
-public class Languages {
-
-    public static final String[] VALID_LANGUAGES = new String[0];
-    private Set<String> languages; // インスタンス変数（プログラミング言語のセット）
-
-    // コンストラクタ
-    public Languages() {
-        this.languages = new HashSet<>(); // 初期化
+    public Leadership(String leadership) {
+        this.leadership = Double.parseDouble(leadership);
     }
-    public Languages(String language) {
-    this(); // 引数なしコンストラクタを呼んでセット初期化
-    addLanguage(language);
-}
 
-    // 1つの言語を追加
-    public boolean addLanguage(String language) {
-        if (language != null && !language.trim().isEmpty()) {
-            languages.add(language.trim());
-            return true;
+    @Override
+    protected boolean validateInput(String leadership) {
+        try {
+            double value = Double.parseDouble(leadership);
+            return value >= 1 && value <= 5;
+        } catch (NumberFormatException e) {
+            return false;
         }
-        System.out.println("無効な言語です: " + language);
-        return false;
     }
 
-    // 複数言語を追加
-    public Set<String> addLanguages(Set<String> languagesList) {
-        Set<String> addedLanguages = new HashSet<>();
-        for (String language : languagesList) {
-            if (addLanguage(language)) {
-                addedLanguages.add(language);
-            }
-        }
-        return addedLanguages;
+    public double getLeadership() {
+        return leadership;
     }
 
-    // 登録済み言語を取得
-    public Set<String> getLanguages() {
-        return new HashSet<>(languages); // コピーを返す（外部からの書き換え防止）
-    }
 }
