@@ -1,3 +1,4 @@
+//経歴
 class Career extends EmployeeInfoValidator {
     private String career;
 
