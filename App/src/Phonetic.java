@@ -35,16 +35,6 @@ class Phonetic extends EmployeeInfoValidator {
         return phonetic;
     }
 
-    @Override
-    protected boolean validateLength(String value, int min, int max) {
-        return value != null && value.length() >= min && value.length() <= max;
-    }
-
-    @Override
-    protected void validate() {
-        if (phonetic == null || !validateInput(phonetic)) {
-            throw new IllegalArgumentException("氏名カナは1〜30文字の範囲で、全角カナ・全角スペース・半角スペースのみ使用できます。");
-        }
-    }
+   
 
 }
