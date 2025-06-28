@@ -5,6 +5,7 @@
  */
 public class Remarks extends EmployeeInfoValidator {
 
+    //フィールド
     private String remarks;
 
     /**
@@ -30,14 +31,7 @@ public class Remarks extends EmployeeInfoValidator {
      */
     @Override
     protected boolean validateInput(String remarks) {
-        return validateLength(remarks, 1, 500);
-    }
-
-    @Override
-    protected void validate() {
-        if (remarks == null || !validateInput(remarks)) {
-            throw new IllegalArgumentException("備考は1〜500文字以内で入力してください。");
-        }
+        return validateLength(remarks, 0, 500);
     }
 
     /**
