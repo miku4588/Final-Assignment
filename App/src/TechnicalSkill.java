@@ -1,25 +1,17 @@
 // 従業員の技術スキルを検証するクラス
 class TechnicalSkill extends EmployeeInfoValidator {
     private double technicalSkill;
-    private String input;
 
     /**
      * コンストラクタ
+     * 
      * @param technicalSkill 技術スキル評価（文字列で受け取る）
      */
     public TechnicalSkill(String technicalSkill) {
-        this.input = technicalSkill;
-    }
-
-    /**
-     * 技術スキルの評価を検証するメソッド（バリデーションの実行）
-     */
-    @Override
-    protected void validate() {
-        if (!validateInput(input)) {
-            throw new IllegalArgumentException("技術スキルは1から5の範囲でなければなりません。");
+        if (!validateInput(technicalSkill)) {
+            throw new IllegalArgumentException("備考は500文字以内で入力してください。");
         }
-        this.technicalSkill = Double.parseDouble(input); // 検証通過後にパース
+        this.technicalSkill = Double.parseDouble(technicalSkill);
     }
 
     /**
