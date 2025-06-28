@@ -4,6 +4,7 @@
  */
 class EmployeeId extends EmployeeInfoValidator {
     private String employeeId;
+    
 
     /**
      * 従業員IDを設定するコンストラクタ。
@@ -40,11 +41,7 @@ class EmployeeId extends EmployeeInfoValidator {
         return employeeId;
     }
 
-    @Override
-protected void validate() {
-    if (!validateInput(employeeId)) {
-        throw new IllegalArgumentException("従業員IDは半角英数字のみ使用できます。");
-    }
-}
+    
+
 
 }
