@@ -24,18 +24,10 @@ class JoinYearMonth extends EmployeeInfoValidator {
         }
     }
 
-    @Override
-    protected void validate() {
-        // ここで必要な追加バリデーションがあれば実装（例：過去かどうかなど）
-        // もし特に無ければ空でOK
-    }
 
     public YearMonth getJoinYearMonth() {
         return joinYearMonth;
     }
 
-    @Override
-    protected boolean validateLength(String value, int min, int max) {
-        return value != null && value.length() >= min && value.length() <= max;
-    }
+
 }
