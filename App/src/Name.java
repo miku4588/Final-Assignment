@@ -7,8 +7,8 @@ public class Name extends EmployeeInfoValidator {
     private String name;
 
     public Name(String name) {
-        if (name == null || !validateInput(name)) {
-            throw new IllegalArgumentException("氏名は1〜20文字の範囲でのみ使用できます。");
+        if ( !validateInput(name)) {
+            throw new IllegalArgumentException("氏名は0〜20文字の範囲でのみ使用できます。");
         }
         this.name = name;
     }
@@ -18,7 +18,7 @@ public class Name extends EmployeeInfoValidator {
      */
     @Override
     protected boolean validateInput(String name) {
-        return validateLength(name, 1, 20);
+        return validateLength(name, 0, 20);
     }
 
     public String getName() {
