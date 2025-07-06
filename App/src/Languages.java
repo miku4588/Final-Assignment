@@ -10,6 +10,12 @@ public class Languages {
     public Languages() {
         this.languages = new HashSet<>(); // 初期化
     }
+
+    public Languages(Set<String> languagesSet) {
+    this(); // 初期化
+    addLanguages(languagesSet); // 複数言語を追加する既存メソッドを使う
+}
+
     public Languages(String language) {
     this(); // 引数なしコンストラクタを呼んでセット初期化
     addLanguage(language);
