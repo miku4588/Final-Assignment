@@ -20,10 +20,44 @@ public class AddEditUI {
     private EmployeeFormPanel formPanel;
     private JLabel creationDateLabel;
     private JLabel lastUpdatedDateLabel;
+    private JTextField employeeIdField;
+    private JTextField employeeNameField;
+    private JTextField employeeAgeField;
+    private JTextField employeeDepartmentField;
+    private JTextField employeeEmailField;
+    private JButton saveButton;
+    private JButton cancelButton;
+    private JButton editButton;
 
     /** UIコンポーネントを初期化 */
     public AddEditUI() {
         initialize();
+    }
+
+    public AddEditUI(EmployeeInfo emp) {
+        initialize();
+        if (emp != null) {
+            frame.setTitle("エンジニア編集"); // タイトルも変える
+            setEmployeeInfo(emp); // フォームにデータをセット
+            setEditMode(true); // 編集フラグ設定
+        }
+    }
+
+    private void setEditMode(boolean isEditMode) {
+        // 社員IDは編集禁止にするケースが多いのでfalse固定にすることも多いです
+        employeeIdField.setEditable(false); // もし編集OKならisEditModeに変えてください
+
+        // 他の編集可能なフィールドはモードに合わせて切り替え
+        employeeNameField.setEditable(isEditMode);
+        employeeAgeField.setEditable(isEditMode);
+        employeeDepartmentField.setEditable(isEditMode);
+        employeeEmailField.setEditable(isEditMode);
+
+        // ボタン類は編集モードなら保存・キャンセルを有効にし、
+        // 編集ボタンは無効にして、編集モード外なら逆にするイメージ
+        saveButton.setEnabled(isEditMode);
+        cancelButton.setEnabled(isEditMode);
+        editButton.setEnabled(!isEditMode);
     }
 
     /** UIコンポーネントの設定とレイアウト */
@@ -35,14 +69,18 @@ public class AddEditUI {
 
         formPanel = new EmployeeFormPanel();
 
-        // idPanel の作成
         JPanel idPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 3));
         JLabel employeeIdLabel = new JLabel("社員ID: ");
-        JTextField employeeIdField = new JTextField(15);
-        idPanel.add(employeeIdLabel);
-        idPanel.add(employeeIdField);
+        this.employeeIdField = new JTextField(15);
 
-        ButtonPanel buttonPanel = new ButtonPanel(frame, formPanel, employeeIdField);
+        idPanel.add(employeeIdLabel);
+        idPanel.add(this.employeeIdField);
+
+        ButtonPanel buttonPanel = new ButtonPanel(
+                frame,
+                formPanel,
+                this.employeeIdField // クラスフィールドを渡す
+        );
 
         // 日付表示設定
         String currentDate = new SimpleDateFormat("yyyy/MM/d").format(new Date());
@@ -76,11 +114,17 @@ public class AddEditUI {
 
         frame.add(container, BorderLayout.CENTER);
         frame.setVisible(true);
+
+    }
+
+    public void setEmployeeInfo(EmployeeInfo emp) {
+        formPanel.setEmployeeInfo(emp);
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(AddEditUI::new);
     }
+
 }
 
 /**
@@ -317,10 +361,104 @@ class ButtonPanel extends JPanel {
  */
 class EmployeeFormPanel extends JPanel {
     // 基本情報フィールド
+    private JTextField employeeIdField;
     private JTextField nameField, phoneticField;
     private JComboBox<String> birthYearCombo, birthMonthCombo, birthDayCombo;
     private JComboBox<String> joinYearCombo, joinMonthCombo;
     private JTextField programmingLanguageField;
+
+    public void setEmployeeInfo(EmployeeInfo emp) {
+        employeeIdField.setText(emp.getEmployeeId());
+        nameField.setText(emp.getName());
+        phoneticField.setText(emp.getPhonetic());
+
+        LocalDate birthDate = emp.getBirthDate(); // LocalDate型と仮定
+
+        birthYearCombo.setSelectedItem(String.valueOf(birthDate.getYear()));
+        birthMonthCombo.setSelectedItem(String.format("%02d", birthDate.getMonthValue())); // 2桁ゼロ埋め
+        birthDayCombo.setSelectedItem(String.format("%02d", birthDate.getDayOfMonth())); // 2桁ゼロ埋め
+
+        YearMonth joinYearMonth = emp.getJoinYearMonth(); // YearMonth型と仮定
+
+        joinYearCombo.setSelectedItem(String.valueOf(joinYearMonth.getYear()));
+        joinMonthCombo.setSelectedItem(String.format("%02d", joinYearMonth.getMonthValue()));
+
+        engineerStartYearBox.setSelectedItem(emp.getEngineerStartYear());
+
+        programmingLanguageField.setText(String.join(", ", emp.getLanguages()));
+
+        technicalSkillCombo.setSelectedItem(String.valueOf(emp.getTechnicalSkill()));
+        attitudeCombo.setSelectedItem(String.valueOf(emp.getAttitude()));
+        communicationSkillCombo.setSelectedItem(String.valueOf(emp.getCommunicationSkill()));
+        leadershipCombo.setSelectedItem(String.valueOf(emp.getLeadership()));
+
+        careerArea.setText(emp.getCareer());
+        trainingHistoryArea.setText(emp.getTrainingHistory());
+        remarksArea.setText(emp.getRemarks());
+
+        // 言語選択のチェックボックスは一旦全部オフにしてから
+        List<String> selectedLangs = (List<String>) emp.getLanguages(); // List<String>想定
+        for (JCheckBox cb : languageCheckboxes) {
+            cb.setSelected(selectedLangs.contains(cb.getText()));
+        }
+    }
+
+    public EmployeeInfo getEmployeeInfo() {
+        String id = employeeIdField.getText();
+        String name = nameField.getText();
+        String phonetic = phoneticField.getText();
+
+        String esyStr = (String) engineerStartYearBox.getSelectedItem();
+
+        String technicalSkillStr = (String) technicalSkillCombo.getSelectedItem();
+        String attitudeStr = (String) attitudeCombo.getSelectedItem();
+        String communicationSkillStr = (String) communicationSkillCombo.getSelectedItem();
+        String leadershipStr = (String) leadershipCombo.getSelectedItem();
+
+        BirthDate birthDateObj = new BirthDate(
+                String.format("%s/%s/%s",
+                        (String) birthYearCombo.getSelectedItem(),
+                        (String) birthMonthCombo.getSelectedItem(),
+                        (String) birthDayCombo.getSelectedItem()));
+
+        JoinYearMonth joinYearMonthObj = new JoinYearMonth(
+                String.format("%s/%s",
+                        (String) joinYearCombo.getSelectedItem(),
+                        (String) joinMonthCombo.getSelectedItem()));
+
+        EngineerStartYear engineerStartYearObj = new EngineerStartYear(esyStr);
+
+        TechnicalSkill technicalSkillObj = new TechnicalSkill(technicalSkillStr);
+        Attitude attitudeObj = new Attitude(attitudeStr);
+        CommunicationSkill communicationSkillObj = new CommunicationSkill(communicationSkillStr);
+        Leadership leadershipObj = new Leadership(leadershipStr);
+
+        // チェックされた言語のセットを作成
+        Set<String> selectedLangs = languageCheckboxes.stream()
+                .filter(JCheckBox::isSelected)
+                .map(JCheckBox::getText)
+                .collect(Collectors.toSet());
+
+        EmployeeInfo employeeInfo = new EmployeeInfo(
+                new EmployeeId(id),
+                new Name(name),
+                new Phonetic(phonetic),
+                birthDateObj,
+                joinYearMonthObj,
+                engineerStartYearObj,
+                technicalSkillObj,
+                attitudeObj,
+                communicationSkillObj,
+                leadershipObj,
+                new Career(careerArea.getText()),
+                new TrainingHistory(trainingHistoryArea.getText()),
+                new Remarks(remarksArea.getText()),
+                new Languages(selectedLangs),
+                LocalDate.now(),
+                LocalDate.now());
+
+        return employeeInfo;
+    }
 
     // 職業情報フィールド
     private JComboBox<String> engineerStartYearBox;
@@ -338,6 +476,7 @@ class EmployeeFormPanel extends JPanel {
 
     /** フォームレイアウト初期化 */
     public EmployeeFormPanel() {
+        employeeIdField = new JTextField(15);
         setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 10, 10, 10);
