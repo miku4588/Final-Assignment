@@ -91,6 +91,4 @@ public abstract class EmployeeInfoValidator {
         // 技術スキルが1以上5以下の範囲であることをチェック
         return value >= 1 && value <= 5;
     }
-
-    //protected abstract void validate(); 中身がないと実装しないとエラーになる
 }
