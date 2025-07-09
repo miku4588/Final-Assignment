@@ -44,9 +44,6 @@ public class ListViewUI {
 
     CSVHandler csvHandler = new CSVHandler(MainApp.DATA_FILE);
 
-    // 削除処理
-    private EmployeeDeleter employeeDeleter = new EmployeeDeleter(csvHandler);//CSVHandlerのインスタンス
-
     /*
      * 一覧画面表示
      */
@@ -302,16 +299,12 @@ public class ListViewUI {
             processingDialog.pack();
             processingDialog.setLocationRelativeTo(frame);
 
-            // null チェック
-            if (employeeDeleter == null) {
-            System.err.println("null");
-        }
             // 削除処理を別スレッドで実行
             Thread deleteThread = new Thread(() -> {
                 final boolean[] allSuccess = { true };
 
                 for (String employeeId : selectedIds) {
-                    boolean success = employeeDeleter.deleteEmployee(employeeId);
+                    boolean success = EmployeeDeleter.deleteEmployee(employeeId);
                     if (!success) {
                         allSuccess[0] = false;
                         SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame,
