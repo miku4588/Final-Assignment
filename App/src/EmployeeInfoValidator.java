@@ -92,5 +92,4 @@ public abstract class EmployeeInfoValidator {
         return value >= 1 && value <= 5;
     }
 
-    //protected abstract void validate(); 中身がないと実装しないとエラーになる
 }
