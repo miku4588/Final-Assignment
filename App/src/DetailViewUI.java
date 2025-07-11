@@ -8,6 +8,9 @@ public class DetailViewUI extends JFrame {
     // ロガーを取得
     private static final EmployeeInfoLogger LOGGER = EmployeeInfoLogger.getInstance();
 
+    // 対象の社員
+    EmployeeInfo targetEmployee;
+
     // ボタン
     JButton backButton = new JButton("一覧画面に戻る");
     JButton editButton = new JButton("編集");
@@ -18,8 +21,8 @@ public class DetailViewUI extends JFrame {
      * @param EmployeeIdString
      */
     public DetailViewUI(String EmployeeIdString) {
-        EmployeeInfo targetEmployee = getEmployeeInfo(EmployeeIdString);
-        displayDetailViewUI(targetEmployee);
+        targetEmployee = getEmployeeInfo(EmployeeIdString);
+        displayDetailViewUI();
     }
 
     /**
@@ -44,7 +47,7 @@ public class DetailViewUI extends JFrame {
      * 詳細画面を表示させる
      * @param targetEmployee
      */
-    private void displayDetailViewUI(EmployeeInfo targetEmployee) {
+    private void displayDetailViewUI() {
         // 画面に関する処理はinvokeLaterで囲むのが安全
         SwingUtilities.invokeLater(() -> {
             setTitle("エンジニア詳細");
@@ -166,7 +169,7 @@ public class DetailViewUI extends JFrame {
             // 編集ボタンにイベントリスナーを追加
             editButton.addActionListener(e -> {
                 setVisible(false);
-                new AddEditUI();
+                new AddEditUI(targetEmployee);
             });
 
             // 削除ボタンにイベントリスナーを追加
