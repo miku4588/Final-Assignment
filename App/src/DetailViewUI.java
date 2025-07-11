@@ -124,7 +124,7 @@ public class DetailViewUI extends JFrame {
             addSelectableField(leftPanel, "技術力：", technicalSkill + " / 5");
             addSelectableField(leftPanel, "受講態度：", attitude + " / 5");
             addSelectableField(leftPanel, "コミュニケーション能力：", communicationSkill + " / 5");
-            addSelectableField(leftPanel, "リーダーシップ：", leadership + " / 5");
+            addSelectableField(leftPanel, "リーダーシップ力：", leadership + " / 5");
             leftPanel.add(Box.createVerticalGlue()); // 最後にglueを詰め込む（最後じゃないとレイアウト崩れるので注意）
 
             // 中央右パネル…経歴、研修の受講歴、備考
