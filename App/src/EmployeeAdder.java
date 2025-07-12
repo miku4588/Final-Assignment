@@ -33,8 +33,8 @@ public class EmployeeAdder {
 
         // 必須項目のブランク（空文字）チェック
         if (isBlank(newEmployee.getEmployeeId()) || // 社員IDが空か？
-                newEmployee.getName() == null || // 名前が未設定か？
-                newEmployee.getPhonetic() == null) { // フリガナが未設定か？
+                newEmployee.getName() == null || // 名前が未設定か？ // 💡名前は未入力可です
+                newEmployee.getPhonetic() == null) { // フリガナが未設定か？ // 💡フリガナも未入力可です
             ErrorHandler.showErrorDialog("必須項目が入力されていません。");
             return false;
         }
