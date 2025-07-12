@@ -20,7 +20,7 @@ public class AddEditUI {
     private EmployeeFormPanel formPanel;
     private JLabel creationDateLabel;
     private JLabel lastUpdatedDateLabel;
-    private JTextField employeeIdField; // 💡initializeの中とformPanelの中、どちらにもemployeeIdFieldがあってうまく機能してないようです
+    private JTextField employeeIdField;
     private JTextField employeeNameField;
     private JTextField employeeAgeField;
     private JTextField employeeDepartmentField;
@@ -39,13 +39,13 @@ public class AddEditUI {
         if (emp != null) {
             frame.setTitle("エンジニア編集"); // タイトルも変える
             setEmployeeInfo(emp); // フォームにデータをセット
-            setEditMode(true); // 編集フラグ設定 // 💡このメソッドが実際にはUIに影響してないみたいです。IDがsetEditable：falseになってない。
+            setEditMode(true); // 編集フラグ設定
         }
     }
 
-    private void setEditMode(boolean isEditMode) { // 💡ここでtrueを受け取らなくてもいいかも。
-        // 社員IDは編集禁止にする
-        employeeIdField.setEditable(false);
+    private void setEditMode(boolean isEditMode) {
+        // 社員IDは編集禁止にするケースが多いのでfalse固定にすることも多いです
+        employeeIdField.setEditable(false); // もし編集OKならisEditModeに変えてください
 
         // 他の編集可能なフィールドはモードに合わせて切り替え
         employeeNameField.setEditable(isEditMode);
@@ -64,7 +64,7 @@ public class AddEditUI {
     private void initialize() {
         frame = new JFrame("エンジニア新規追加");
         frame.setSize(1000, 700);
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);  // 💡×ボタンでアプリも終了するはず、、なのでEXIT_ON_CLOSEを指定してほしいです
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setLayout(new BorderLayout());
 
         formPanel = new EmployeeFormPanel();
@@ -85,7 +85,7 @@ public class AddEditUI {
         // 日付表示設定
         String currentDate = new SimpleDateFormat("yyyy/MM/d").format(new Date());
         creationDateLabel = new JLabel("データ作成日: " + currentDate);
-        lastUpdatedDateLabel = new JLabel("最終更新日: " + currentDate); // 💡新規追加時は最終更新日なしがいいです、、、！！
+        lastUpdatedDateLabel = new JLabel("最終更新日: " + currentDate);
 
         JPanel datePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         datePanel.add(creationDateLabel);
@@ -137,7 +137,7 @@ class ButtonPanel extends JPanel {
     private JTextField employeeIdField;
     private boolean isEditMode;
 
-    public ButtonPanel(JFrame frame, EmployeeFormPanel formPanel, JTextField employeeIdField, boolean isEditMode) { // 💡同じメソッドが2個あるのは何故でしょう、、？
+    public ButtonPanel(JFrame frame, EmployeeFormPanel formPanel, JTextField employeeIdField, boolean isEditMode) {
         this.frame = frame;
         this.formPanel = formPanel;
         this.employeeIdField = employeeIdField;
@@ -145,7 +145,7 @@ class ButtonPanel extends JPanel {
 
         setLayout(new FlowLayout(FlowLayout.RIGHT));
         JButton saveButton = new JButton("保存");
-        JButton cancelButton = new JButton("戻る");  // 💡キャンセルでお願いします！
+        JButton cancelButton = new JButton("戻る");
 
         saveButton.addActionListener(e -> saveEmployee());
         cancelButton.addActionListener(e -> showDiscardDialog());
@@ -161,14 +161,14 @@ class ButtonPanel extends JPanel {
      * @param formPanel       フォームパネル
      * @param employeeIdField 社員ID入力フィールド
      */
-    public ButtonPanel(JFrame frame, EmployeeFormPanel formPanel, JTextField employeeIdField) { // 💡2個のうち使われてるのはこちら。前者は消しても良さそう？
+    public ButtonPanel(JFrame frame, EmployeeFormPanel formPanel, JTextField employeeIdField) {
         this.frame = frame;
         this.formPanel = formPanel;
         this.employeeIdField = employeeIdField;
 
         setLayout(new FlowLayout(FlowLayout.RIGHT));
         JButton saveButton = new JButton("保存");
-        JButton cancelButton = new JButton("戻る");  // 💡キャンセルでお願いします！
+        JButton cancelButton = new JButton("戻る");
 
         saveButton.addActionListener(e -> saveEmployee());
         cancelButton.addActionListener(e -> showDiscardDialog());
@@ -180,12 +180,12 @@ class ButtonPanel extends JPanel {
     /** 従業員情報保存処理 */
     private void saveEmployee() {
 
-        System.out.println("saveEmployeeメソッド呼ばれました");// 動作確認用 // 💡残ったままになってます！
+        System.out.println("saveEmployeeメソッド呼ばれました");// 動作確認用
 
         List<String> errors = new ArrayList<>();
         Map<String, Object> fieldValues = new HashMap<>();
 
-        System.out.println("バリデーション開始");// 動作確認用 // 💡残ったままになってます！
+        System.out.println("バリデーション開始");// 動作確認用
 
         // フィールドバリデーション一括実行
         validateField("employeeId", employeeIdField, text -> new EmployeeId(text), errors, fieldValues);
@@ -232,7 +232,7 @@ class ButtonPanel extends JPanel {
             return;
         }
 
-        System.out.println("新しい従業員オブジェクト作成開始");// 動作確認用 // 💡残ったままになってます！
+        System.out.println("新しい従業員オブジェクト作成開始");// 動作確認用
 
         // 従業員情報オブジェクト作成
         EmployeeInfo newEmployee = new EmployeeInfo(
@@ -251,7 +251,7 @@ class ButtonPanel extends JPanel {
                 (Remarks) fieldValues.get("remarks"),
                 new Languages(), // ここは適宜調整を
                 LocalDate.now(),
-                LocalDate.now()); // 💡最終更新日は、追加時はnullで、編集時は今日の日付を渡してほしいです
+                LocalDate.now());
 
         if (isEditMode) {
             boolean result = EmployeeEditor.editEmployee(
@@ -357,7 +357,7 @@ class ButtonPanel extends JPanel {
 
 /**
  * 従業員情報入力フォームを管理するパネル。
- * 全入力フィールドとバリデーション機能を含む。 // 💡バリデーション分けた方がいいかもです、employeeIdFieldがうまく拾えてなさそうで、、、
+ * 全入力フィールドとバリデーション機能を含む。
  */
 class EmployeeFormPanel extends JPanel {
     // 基本情報フィールド
