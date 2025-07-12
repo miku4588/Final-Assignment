@@ -52,7 +52,7 @@ public class DetailViewUI extends JFrame {
         SwingUtilities.invokeLater(() -> {
             setTitle("エンジニア詳細");
             setSize(1000, 700);
-            setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // ×が押されたら…このウィンドウだけ終了
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // ×が押されたらアプリも終了
             setLayout(new BorderLayout());
 
             // 社員ID表示用パネルは選択可能（編集は不可）にする
