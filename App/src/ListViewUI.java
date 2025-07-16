@@ -1,33 +1,15 @@
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableRowSorter;
+import javax.swing.*;
+import javax.swing.table.*;
 
 public class ListViewUI {
     // 従業員情報
     private EmployeeManager manager;
-    // 件数表示
+    // 検索結果の件数表示
     private JLabel countLabel;
     // フレーム
     private JFrame frame;
@@ -38,179 +20,160 @@ public class ListViewUI {
     // ラベル
     private JLabel text;
     // 各種ボタン
-    private JButton searchButton, sortButton, addButton, csvExportButton, deleButton, selectAllButton, cancelAllButton;
+    private JButton searchButton, filteredSearchButton, addButton, csvExportButton, deleteButton, selectAllButton, cancelAllButton;
     // 従業員表示テーブル
     private JTable employeeTable;
+    // テーブルモデル（テーブル内のデータ）
+    private DefaultTableModel model;
+    // ソーター（ソート機能）
+    private TableRowSorter<DefaultTableModel> sorter;
 
-    CSVHandler csvHandler = new CSVHandler(MainApp.DATA_FILE);
-
-    // 削除処理
-    private EmployeeDeleter employeeDeleter = new EmployeeDeleter(csvHandler);//CSVHandlerのインスタンス
-
-    /*
-     * 一覧画面表示
+    /**
+     * コンストラクタ
+     * 
+     * @param manager
      */
     public ListViewUI(EmployeeManager manager) {
         this.manager = manager;
-
+        setupTable();
         displayEmployees();
     }
 
-    /*
-     * 従業員表示メソッド
+    /**
+     * 一覧画面表示
      */
-    void displayEmployees() {
+    private void displayEmployees() {
 
-        // フレームの作成
+        // フレーム
         frame = new JFrame("人材管理アプリ");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1000, 700);
-        // frame.setLocationRelativeTo(null);
-        // パネルの作成
+
+        // 全体パネル
         panel = new JPanel();
         panel.setLayout(new BorderLayout()); // パネルの配置の決め方東西南北センター
 
-        // ボタンの配置
+        // 上部ボタン用パネル
         JPanel controlPanel = new JPanel();
         controlPanel.setLayout(new GridLayout(2, 3)); // 水平にボタンを配置
 
-        // テキストの作成
+        // 左上のテキスト
         text = new JLabel("エンジニア人材管理");
         controlPanel.add(text);
 
-        // 検索ボックス/検索ボタン 🔴編集途中
+        // 検索ボックスと検索ボタン
         searchBox = new JTextField(15);
         controlPanel.add(searchBox);
         searchButton = new JButton("検索");
         controlPanel.add(searchButton);
         // 検索処理
-        searchButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String keyword = searchBox.getText();
-                keywordSearch(keyword);
-            }
+        searchButton.addActionListener(e -> {
+            String keyword = searchBox.getText();
+            keywordSearch(keyword);
         });
 
-        // 絞り込みボタン 🔴編集途中
-        sortButton = new JButton("絞り込み検索");
-        sortButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // 処理
-            }
-        });
-        controlPanel.add(sortButton);
+        // 絞り込みボタン 🔴機能落ちさせます。。。
+        filteredSearchButton = new JButton("絞り込み検索");
+        filteredSearchButton.setEnabled(false); // 非活性にしておく
+        controlPanel.add(filteredSearchButton);
 
-        // 新規追加ボタン 🔴編集途中
+        // 新規追加ボタン
         addButton = new JButton("新規追加");
         controlPanel.add(addButton);
         // ポップアップメニューの作成
         JPopupMenu pupMenu = new JPopupMenu();
-        // ⭐️⭐️⭐️ポップアップ１
         JMenuItem button1 = new JMenuItem("CSV読込");
-        button1.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new CSVUI();
-                // 一覧画面の更新
-                reloadEmployeeTable();
-            }
-        });
+        JMenuItem button2 = new JMenuItem("1名追加");
         pupMenu.add(button1);
-        // ポップアップ２
-        JMenuItem button2 = new JMenuItem("1人追加");
-        button2.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                frame.setVisible(false);// フレームを非表示
-                new AddEditUI();
-
-                // 一覧画面の更新
-                reloadEmployeeTable();
-            }
-        });
         pupMenu.add(button2);
+        // ポップアップ1　CSV読込
+        button1.addActionListener(e -> {
+            new CSVUI();
+        });
+        // ポップアップ2　1名追加
+        button2.addActionListener(e -> {
+            frame.setVisible(false);// フレームを非表示
+            new AddEditUI();
+        });
         // プルダウンメニューの表示
-        addButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pupMenu.show(addButton, 0, addButton.getHeight());
-
-            }
+        addButton.addActionListener(e -> {
+            pupMenu.show(addButton, 0, addButton.getHeight());
         });
 
         // CSVエクスポートボタン 🔴編集途中
         csvExportButton = new JButton("CSV出力");
-        csvExportButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                
-            }
+        csvExportButton.addActionListener(e -> {
+            // 🥳
         });
         csvExportButton.setEnabled(false);// チェックボックスが押されるまで非アクティブ
         controlPanel.add(csvExportButton);
 
-        // 削除ボタン 🔴編集途中
-        deleButton = new JButton("削除");
-        deleButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                showDeleteDialog();
-            }
+        // 削除ボタン
+        deleteButton = new JButton("削除");
+        deleteButton.addActionListener(e -> {
+            showDeleteDialog();
         });
-        deleButton.setEnabled(false);// チェックボックスが押されるまで非アクティブ
-        controlPanel.add(deleButton);
+        deleteButton.setEnabled(false);// チェックボックスが押されるまで非アクティブ
+        controlPanel.add(deleteButton);
 
         // 選択全件選択
         selectAllButton = new JButton("全件選択");
-        selectAllButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // 処理
-
-                for (int row = 0; row < employeeTable.getRowCount(); row++) {
-                    employeeTable.setValueAt(true, row, 0);
-                }
+        selectAllButton.addActionListener(e -> {
+            for (int row = 0; row < employeeTable.getRowCount(); row++) {
+                employeeTable.setValueAt(true, row, 0);
             }
         });
         controlPanel.add(selectAllButton);
 
         // 選択解除
         cancelAllButton = new JButton("選択解除");
-        cancelAllButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // 処理
-                for (int row = 0; row < employeeTable.getRowCount(); row++) {
-                    employeeTable.setValueAt(false, row, 0);
-                }
-                updateCheckboxDependentButtons(); // 状態更新
+        cancelAllButton.addActionListener(e -> {
+            for (int row = 0; row < employeeTable.getRowCount(); row++) {
+                employeeTable.setValueAt(false, row, 0);
             }
         });
         cancelAllButton.setEnabled(false);// チェックボックスが押されるまで非アクティブ
         controlPanel.add(cancelAllButton);
 
-        JButton Button1 = new JButton("更新テスト");
-        Button1.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                reloadEmployeeTable();
-            }
-        });
-        controlPanel.add(Button1);
-
         // 件数表示
         countLabel = new JLabel();
         controlPanel.add(countLabel);
+        countLabel.setText("表示件数: " + employeeTable.getRowCount() + " 件"); // 社員の人数を更新
 
-        // JTable
+
+        // チェックボックスの変更を監視
+        employeeTable.getModel().addTableModelListener(e -> {
+            updateCheckboxDependentButtons();
+        });
+        employeeTable.setRowHeight(60);
+        employeeTable.getTableHeader().setReorderingAllowed(false); // ヘッダーの列の入れ替えを無効にする
+
+        // テーブルをスクロール可能にする
+        JScrollPane scrollPane = new JScrollPane(employeeTable);
+        int maxVisibleRows = 10;
+        int tableHeight = 60 * maxVisibleRows;
+        scrollPane.setPreferredSize(new Dimension(scrollPane.getPreferredSize().width, tableHeight));
+        panel.add(scrollPane);
+
+        // フレームにパネルを追加
+        frame.add(panel, BorderLayout.CENTER);
+        frame.add(controlPanel, BorderLayout.NORTH);
+
+        // フレームを表示
+        frame.setVisible(true);
+    }
+
+
+    /**
+     * テーブルの設定
+     */
+    private void setupTable() {
+        // テーブルモデルを設定
         String[] columnNames = { "選択", "社員ID", "氏名", "年齢", "エンジニア歴", "扱える言語", "データ作成日", "最終更新日" };
-        DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
+        model = new DefaultTableModel(columnNames, 0) {
             @Override
             public Class<?> getColumnClass(int columnIndex) {
-
-                // 年齢とエンジニア暦を数値にして・他を文字にする
+                // 年齢とエンジニア歴は数値、他は文字
                 if (columnIndex == 0) { // チェックボックス列
                     return Boolean.class;
                 } else if (columnIndex == 3 || columnIndex == 4) {
@@ -225,15 +188,15 @@ public class ListViewUI {
             public boolean isCellEditable(int row, int column) {
                 return column == 0; // チェックボックス（選択列）のみ編集可能
             }
-
         };
 
+        // 社員情報をテーブルモデルにセット
         for (EmployeeInfo emp : manager.getEmployeeList()) {
             Object[] rowData = new Object[] {
                     false, // チェックボックス
                     emp.getEmployeeId(), // 社員ID
                     emp.getName(), // 氏名
-                    getAge(emp), // 年齢
+                    calculateAge(emp), // 年齢
                     calculateEngineerYears(emp), // エンジニア暦
                     emp.getLanguages(), // 言語
                     emp.getCreationDate(), // 作成日
@@ -241,106 +204,65 @@ public class ListViewUI {
             };
             model.addRow(rowData);
         }
+        employeeTable = new JTable(model); // テーブルにテーブルモデルをセット
 
-        employeeTable = new JTable(model);
-        updateEmployeeCountLabel();
-
-        // ソート機能を追加🟢
-        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
-        sorter.setSortable(0, false); // チェックボックス列はソートしない
+        // ソーターを設定
+        sorter = new TableRowSorter<>(model);
         employeeTable.setRowSorter(sorter);
-
-        // チェックボックスの変更を監視
-        employeeTable.getModel().addTableModelListener(new javax.swing.event.TableModelListener() {
-            @Override
-            public void tableChanged(javax.swing.event.TableModelEvent e) {
-                updateCheckboxDependentButtons();
-            }
-        });
-        employeeTable.setRowHeight(60);
-        employeeTable.getTableHeader().setReorderingAllowed(false); // ヘッダーの列の入れ替えを無効にする
-
-        JScrollPane scrollPane = new JScrollPane(employeeTable);// スクロールパネルにする
-
-        int maxVisibleRows = 10;
-        int tableHeight = 60 * maxVisibleRows;
-        scrollPane.setPreferredSize(new Dimension(scrollPane.getPreferredSize().width, tableHeight));
-
-        panel.add(scrollPane);
-
-        // フレームにパネルを追加
-        frame.add(panel, BorderLayout.CENTER);
-        frame.add(controlPanel, BorderLayout.NORTH);
-
-        // フレームを表示
-        frame.setVisible(true);
-
-        System.out.println("ここには" + model.getRowCount());
+        sorter.setSortable(0, false); // チェックボックス列はソートボタンなし
     }
 
-    // 削除ダイアログ
-    void showDeleteDialog() {
+
+    /**
+     * 削除確認ダイアログ
+     */
+    private void showDeleteDialog() {
         List<String> selectedIds = getSelectedEmployeeIds();
-
-        // 渡せてるかテスト
-        StringBuilder sb = new StringBuilder();
-        for (String id : selectedIds) {
-            sb.append(id).append("\n");
-        }
-        JOptionPane.showMessageDialog(frame, sb.toString(), "選択された従業員ID", JOptionPane.INFORMATION_MESSAGE);
-
         int result = JOptionPane.showConfirmDialog(frame, "削除したデータは復元できません。削除しますか。", "確認", JOptionPane.YES_NO_OPTION);
 
         if (result == JOptionPane.YES_OPTION) {
-            // 処理中ダイアログ作成（モーダル・タイトルなし・×なし）
-            JDialog processingDialog = new JDialog(frame, "削除中...", true);
-            processingDialog.setUndecorated(true);
-            JPanel panel = new JPanel(new BorderLayout(10, 10));
-            panel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-            panel.add(new JLabel("削除中です。しばらくお待ちください。"), BorderLayout.CENTER);
-            processingDialog.getContentPane().add(panel);
-            processingDialog.pack();
-            processingDialog.setLocationRelativeTo(frame);
+            // 処理中メッセージ作成
+            JDialog processingDialog = new JDialog(this.frame, true); // true…親ウィンドウの操作をブロック
+            processingDialog.setUndecorated(true); // タイトルバーを消す（×ボタンも消える）
+            JPanel processingPanel = new JPanel();
+            processingPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK)); // 黒い枠線
+            processingPanel.add(new JLabel("削除中です。"));
+            processingDialog.getContentPane().add(processingPanel);
+            processingDialog.pack(); // ウィンドウサイズ自動調整
+            processingDialog.setLocationRelativeTo(this.frame); // 表示位置は親ウィンドウが基準
 
-            // null チェック
-            if (employeeDeleter == null) {
-            System.err.println("null");
-        }
-            // 削除処理を別スレッドで実行
+            // 削除処理を行うスレッドを作成
             Thread deleteThread = new Thread(() -> {
-                final boolean[] allSuccess = { true };
-
                 for (String employeeId : selectedIds) {
-                    boolean success = employeeDeleter.deleteEmployee(employeeId);
-                    if (!success) {
-                        allSuccess[0] = false;
+                    boolean isSuccess = EmployeeDeleter.deleteEmployee(employeeId);
+                    if (!isSuccess) {
                         SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame,
-                                "従業員ID " + employeeId + " の削除に失敗しました。", "エラー", JOptionPane.ERROR_MESSAGE));
+                                "従業員ID " + employeeId + " の削除に失敗しました。\nこれ以降の削除処理は行わず中断します。", "エラー", JOptionPane.ERROR_MESSAGE));
+                        return; // 失敗したらスレッドから強制離脱
                     }
                 }
 
                 SwingUtilities.invokeLater(() -> {
                     processingDialog.dispose();
-                    displayEmployees();
-                    if (allSuccess[0]) {
-                        JOptionPane.showMessageDialog(frame, "選択された従業員を削除しました。", "完了", JOptionPane.INFORMATION_MESSAGE);
-                    }
+                    JOptionPane.showMessageDialog(frame, "選択された従業員を削除しました。", "完了", JOptionPane.INFORMATION_MESSAGE);
                 });
             });
 
-            deleteThread.start();
-            // モーダルダイアログを表示（このスレッドはここで一旦停止）
+            // 処理中メッセージを表示し、削除処理を実行
             processingDialog.setVisible(true);
+            deleteThread.start();
         }
     }
 
+
     /**
-     * 年齢を取得
+     * 生年月日から年齢を算出
+     * @param emp 社員情報
+     * @return 年齢
      */
-    private int getAge(EmployeeInfo emp) {
+    private int calculateAge(EmployeeInfo emp) {
         LocalDate birthDate = emp.getBirthDate();
         LocalDate now = LocalDate.now();
-
         int age = now.getYear() - birthDate.getYear();
 
         // まだ誕生日来てなければ1引く
@@ -350,8 +272,11 @@ public class ListViewUI {
         return age;
     }
 
+
     /**
-     * 暦を取得
+     * エンジニア開始年からエンジニア歴を算出
+     * @param emp 社員情報
+     * @return エンジニア歴
      */
     private int calculateEngineerYears(EmployeeInfo emp) {
         int startYear = emp.getEngineerStartYear().getValue();
@@ -360,50 +285,23 @@ public class ListViewUI {
         return years;
     }
 
-    /**
-     * 従業員人数表示メソッド
-     */
-    private void updateEmployeeCountLabel() {
-        //employeeTableの件数を渡す
-        int rowCount = employeeTable.getRowCount();
-        countLabel.setText("表示件数: " + rowCount + " 件");
-    }
 
     /**
-     * 一覧画面更新メソッド
-     */
-    private void reloadEmployeeTable() {
-        //null チェック
-        if (employeeTable == null) {
-            System.err.println("null");
-        }
-        DefaultTableModel model = (DefaultTableModel) employeeTable.getModel();
-
-        model.setRowCount(0); // 一旦クリア
-
-        for (EmployeeInfo emp : manager.getEmployeeList()) {
-            Object[] rowData = new Object[] {
-                    false, // チェックボックス
-                    emp.getEmployeeId(), // 社員ID
-                    emp.getName(), // 氏名
-                    getAge(emp), // 年齢
-                    calculateEngineerYears(emp), // エンジニア暦
-                    emp.getLanguages(), // 言語
-                    emp.getCreationDate(), // 作成日
-                    emp.getLastUpdatedDate(),// 更新日
-            };
-            model.addRow(rowData);
-        }
-        updateEmployeeCountLabel();
-    }
-
-    /**
-     * チェックボックス 選択後の処理
+     * チェックボックスの選択状態から各ボタンの活性・非活性を切り替え
      */
     private void updateCheckboxDependentButtons() {
-        boolean isAnyChecked = false;
-        boolean isAllChecked = true;
-
+        // もしテーブル内にデータが1行もなければ4つとも非活性
+        if (employeeTable.getRowCount() == 0) {
+            cancelAllButton.setEnabled(false);
+            selectAllButton.setEnabled(false);
+            deleteButton.setEnabled(false);
+            csvExportButton.setEnabled(false);
+            return;
+        }
+        
+        // 1件以上データがあるならチェックボックスの状態を確認
+        boolean isAnyChecked = false; // 1件以上選択されている状態
+        boolean isAllChecked = true; // 全件が選択済みの状態
         for (int row = 0; row < employeeTable.getRowCount(); row++) {
             boolean isSelected = (Boolean) employeeTable.getValueAt(row, 0);
             if (isSelected) {
@@ -414,27 +312,26 @@ public class ListViewUI {
         }
         cancelAllButton.setEnabled(isAnyChecked);
         selectAllButton.setEnabled(!isAllChecked);
-        deleButton.setEnabled(isAnyChecked);
+        deleteButton.setEnabled(isAnyChecked);
         csvExportButton.setEnabled(isAnyChecked);
-
     }
 
+
     /**
-     * チェックボックスで選択された従業員のIDを取得するメソッド
+     * チェックボックスで選択された社員の社員IDを取得
+     * 
+     * @return 選択された社員の社員IDのリスト
      */
     private List<String> getSelectedEmployeeIds() {
-        // 空のリストを作成
         List<String> selectedIds = new ArrayList<>();
-        // テーブルの中身を取得
-        DefaultTableModel model = (DefaultTableModel) employeeTable.getModel();
-        // テーブルのすべての行で処理を行う
+
+        // テーブルの全行を走査
         for (int viewRow = 0; viewRow < employeeTable.getRowCount(); viewRow++) {
             int modelRow = employeeTable.convertRowIndexToModel(viewRow); // ソート対応
             Boolean isChecked = (Boolean) model.getValueAt(modelRow, 0);
             // trueの時だけ処理
             if (isChecked != null && isChecked) {
-                // 二行目だけ取得(ID)
-                String employeeId = model.getValueAt(modelRow, 1).toString();
+                String employeeId = model.getValueAt(modelRow, 1).toString(); // 2列目（社員ID）を取得
                 selectedIds.add(employeeId);
             }
         }
@@ -442,15 +339,14 @@ public class ListViewUI {
         return selectedIds;
     }
 
+
     /**
-     * 検索メソッド
+     * 検索機能
+     * @param keyword 検索ワード
      */
     void keywordSearch(String keyword) {
+        // 新しいリストに検索結果を追加
         SearchCriteria filter = new SearchCriteria(keyword);
-
-        // DefaultTableModel model = (DefaultTableModel) employeeTable.getModel();
-        // model.setRowCount(0); // 既存の行を削除
-
         List<EmployeeInfo> filteredList = new ArrayList<>();
         for (EmployeeInfo emp : manager.getEmployeeList()) {
             if (filter.matches(emp)) {
@@ -458,31 +354,32 @@ public class ListViewUI {
             }
         }
 
-        System.out.println("=== filteredList の内容 ===");
-        for (EmployeeInfo emp : filteredList) {
-            System.out.println("社員ID: " + emp.getEmployeeId()
-                    + ", 氏名: " + emp.getName()
-                    + ", 氏名カナ: " + emp.getPhonetic());
-        }
-        System.out.println("========================");
-        System.out.println("処理完了");
+        // EDTの中でmodelの差し替え
+        SwingUtilities.invokeLater(() -> {
+            // ソーターを外さないとmodelが空にできないので外す
+            employeeTable.setRowSorter(null);
+            model.setRowCount(0);
 
-        DefaultTableModel model = (DefaultTableModel) employeeTable.getModel();
-        // model.setRowCount(0);
+            // 検索結果をmodelに追加
+            for (EmployeeInfo emp : filteredList) {
+                Object[] rowData = new Object[] {
+                        false,
+                        emp.getEmployeeId(),
+                        emp.getName(),
+                        calculateAge(emp),
+                        calculateEngineerYears(emp),
+                        emp.getLanguages(),
+                        emp.getCreationDate(),
+                        emp.getLastUpdatedDate(),
+                };
+                model.addRow(rowData);
+            }
+            countLabel.setText("表示件数: " + employeeTable.getRowCount() + " 件"); // 件数表示
 
-        for (EmployeeInfo emp : filteredList) {
-            Object[] rowData = new Object[] {
-                    false, // チェックボックス
-                    emp.getEmployeeId(),
-                    emp.getName(),
-                    getAge(emp),
-                    calculateEngineerYears(emp),
-                    emp.getLanguages(),
-                    emp.getCreationDate(),
-                    emp.getLastUpdatedDate(),
-            };
-            model.addRow(rowData);
-        }
-        updateEmployeeCountLabel(); // 件数表示も更新
+            // 新しいソーターを設定
+            sorter = new TableRowSorter<>(model);
+            employeeTable.setRowSorter(sorter);
+            sorter.setSortable(0, false); // チェックボックス列はソートボタンなし
+        });
     }
 }
