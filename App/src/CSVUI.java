@@ -16,7 +16,7 @@ public class CSVUI extends JFrame {
     private JButton importButton = new JButton("読み込む");
     
     // 読み込み中・保存中メッセージ
-    private JDialog prosessingDialog = new JDialog(this, true); // true…親ウィンドウの操作をブロック
+    private JDialog processingDialog = new JDialog(this, true); // true…親ウィンドウの操作をブロック
 
     // 確認ダイアログ
     private JDialog confirmDialog = new JDialog(this, "確認", true); // true…親ウィンドウの操作をブロック
@@ -91,14 +91,14 @@ public class CSVUI extends JFrame {
     /**
      * 処理中メッセージを初期化する
      */
-    private void initializeProsessingDialog(String message) {
-        prosessingDialog.setUndecorated(true); // タイトルバーを消す（×ボタンも消える）
-        JPanel prosessingPanel = new JPanel();
-        prosessingPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK)); // 黒い枠線
-        prosessingPanel.add(new JLabel(message));
-        prosessingDialog.getContentPane().add(prosessingPanel);
-        prosessingDialog.pack(); // ウィンドウサイズ自動調整
-        prosessingDialog.setLocationRelativeTo(this); // 表示位置は親ウィンドウが基準
+    private void initializeProcessingDialog(String message) {
+        processingDialog.setUndecorated(true); // タイトルバーを消す（×ボタンも消える）
+        JPanel processingPanel = new JPanel();
+        processingPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK)); // 黒い枠線
+        processingPanel.add(new JLabel(message));
+        processingDialog.getContentPane().add(processingPanel);
+        processingDialog.pack(); // ウィンドウサイズ自動調整
+        processingDialog.setLocationRelativeTo(this); // 表示位置は親ウィンドウが基準
     }
 
 
@@ -109,8 +109,8 @@ public class CSVUI extends JFrame {
     private void loadCSV(String filePath) {
 
         // 処理中メッセージ表示
-        initializeProsessingDialog("CSVファイルを読み込み中です。");
-        SwingUtilities.invokeLater(() -> prosessingDialog.setVisible(true));
+        initializeProcessingDialog("CSVファイルを読み込み中です。");
+        SwingUtilities.invokeLater(() -> processingDialog.setVisible(true));
 
         // サブスレッド生成
         Thread threadLoadData = new Thread(() -> {
@@ -134,7 +134,7 @@ public class CSVUI extends JFrame {
                 }
             }
             // 処理中メッセージを閉じる
-            SwingUtilities.invokeLater(() -> prosessingDialog.dispose());
+            SwingUtilities.invokeLater(() -> processingDialog.dispose());
         }, "CSVimporter");
 
         // サブスレッド開始
@@ -198,8 +198,8 @@ public class CSVUI extends JFrame {
     private void saveCSV(List<EmployeeInfo> employeeList) {
         
         // 処理中メッセージ表示
-        initializeProsessingDialog("保存中です。");
-        SwingUtilities.invokeLater(() -> prosessingDialog.setVisible(true));
+        initializeProcessingDialog("保存中です。");
+        SwingUtilities.invokeLater(() -> processingDialog.setVisible(true));
 
         // サブスレッド生成
         Thread threadSaveData = new Thread(() -> {
@@ -225,7 +225,7 @@ public class CSVUI extends JFrame {
 
             // 処理中メッセージを閉じて、保存完了メッセージを表示
             SwingUtilities.invokeLater(() -> {
-                prosessingDialog.dispose();
+                processingDialog.dispose();
                 showSavedDialog();
             });
         }, "CSVsaver");
