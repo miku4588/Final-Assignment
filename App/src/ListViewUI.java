@@ -6,6 +6,9 @@ import java.util.List;
 import javax.swing.*;
 import javax.swing.table.*;
 
+import java.awt.event.*;
+
+
 public class ListViewUI {
     // 従業員情報
     private EmployeeManager manager;
@@ -35,8 +38,8 @@ public class ListViewUI {
      */
     public ListViewUI(EmployeeManager manager) {
         this.manager = manager;
-        setupTable();
-        displayEmployees();
+        setupTable(); // 社員情報のテーブルを設定
+        displayEmployees(); // UIを表示
     }
 
     /**
@@ -88,7 +91,7 @@ public class ListViewUI {
         pupMenu.add(button2);
         // ポップアップ1　CSV読込
         button1.addActionListener(e -> {
-            new CSVUI();
+            new CSVUI(frame);
         });
         // ポップアップ2　1名追加
         button2.addActionListener(e -> {
@@ -100,10 +103,12 @@ public class ListViewUI {
             pupMenu.show(addButton, 0, addButton.getHeight());
         });
 
-        // CSVエクスポートボタン 🔴編集途中
+        // CSVエクスポートボタン
         csvExportButton = new JButton("CSV出力");
         csvExportButton.addActionListener(e -> {
-            // 🥳
+            if(CSVHandler.tryExportTemplateCSV(getSelectedEmployeeInfos())) {
+                JOptionPane.showMessageDialog(frame, "CSVテンプレートを出力しました。", "テンプレート出力完了", JOptionPane.INFORMATION_MESSAGE);
+            }
         });
         csvExportButton.setEnabled(false);// チェックボックスが押されるまで非アクティブ
         controlPanel.add(csvExportButton);
@@ -204,7 +209,51 @@ public class ListViewUI {
             };
             model.addRow(rowData);
         }
-        employeeTable = new JTable(model); // テーブルにテーブルモデルをセット
+        employeeTable = new JTable(model);
+
+        // 社員ID列の見た目をリンク文字っぽく
+        employeeTable.getColumnModel().getColumn(1)
+                .setCellRenderer((table, value, isSelected, hasFocus, row, column) -> {
+                    JLabel label = new JLabel("<html><u><font color='#0088ff'>" + value + "</font></u></html>");
+                    if (isSelected) {
+                        label.setBackground(table.getSelectionBackground());
+                        label.setOpaque(true);
+                    }
+                    return label;
+                });
+
+        // マウスオーバーでカーソルの形を変更
+        employeeTable.addMouseMotionListener(new MouseMotionListener() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                int col = employeeTable.columnAtPoint(e.getPoint()); // マウスポインタの位置（何列目か）
+                if (col <= 1) {
+                    employeeTable.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); // 手の形
+                } else {
+                    employeeTable.setCursor(Cursor.getDefaultCursor()); // デフォルトの形
+                }
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                // 使わないけど書かないとエラーになる
+            }
+        });
+
+        // 社員IDがクリックされたら詳細情報画面を表示
+        employeeTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int row = employeeTable.rowAtPoint(e.getPoint()); // マウスポインタの位置（何行目か）
+                int col = employeeTable.columnAtPoint(e.getPoint()); // マウスポインタの位置（何列目か）
+                if (col == 1 && row >= 0) {
+                    int modelRow = employeeTable.convertRowIndexToModel(row);
+                    String employeeId = model.getValueAt(modelRow, 1).toString();
+                    frame.setVisible(false);// フレームを非表示
+                    new DetailViewUI(employeeId);
+                }
+            }
+        });
 
         // ソーターを設定
         sorter = new TableRowSorter<>(model);
@@ -318,8 +367,7 @@ public class ListViewUI {
 
 
     /**
-     * チェックボックスで選択された社員の社員IDを取得
-     * 
+     * チェックボックスで選択された社員の社員IDをリスト化
      * @return 選択された社員の社員IDのリスト
      */
     private List<String> getSelectedEmployeeIds() {
@@ -337,6 +385,30 @@ public class ListViewUI {
         }
 
         return selectedIds;
+    }
+
+
+    /**
+     * チェックボックスで選択された社員の情報をリスト化
+     * @return 選択された社員のリスト
+     */
+    private List<EmployeeInfo> getSelectedEmployeeInfos() {
+        List<EmployeeInfo> employees = EmployeeManager.getEmployeeList(); // データリスト
+        List<String> selectedIds = getSelectedEmployeeIds(); // 選択された社員IDのリスト
+        List<EmployeeInfo> selectedEmployees = new ArrayList<>(); // 選択された社員情報のリスト（空）
+
+        // 選択された社員IDに対して繰り返し処理
+        for(String employeeId : selectedIds) {
+            // データリストの中から社員IDが一致する社員情報を探す
+            for(EmployeeInfo employee : employees) {
+                if (employee.getEmployeeId().equals(employeeId)) {
+                    selectedEmployees.add(employee);
+                    break;
+                }
+            }
+        }
+
+        return selectedEmployees;
     }
 
 
