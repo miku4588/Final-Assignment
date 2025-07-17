@@ -239,7 +239,7 @@ public class CSVHandler {
     /**
      * CSVテンプレートファイルを生成する
      */
-    public static void exportTemplateCSV(List<EmployeeInfo> exportEmployeeList) {
+    public static boolean tryExportTemplateCSV(List<EmployeeInfo> exportEmployeeList) {
         LOGGER.logOutput("CSVテンプレートの出力を開始。");
 
         // ダウンロードフォルダのパスを取得
@@ -251,7 +251,7 @@ public class CSVHandler {
         if (!Files.exists(downloadDirectory)) {
             LOGGER.logOutput("ダウンロードフォルダが見つからないため処理を中止します。");
             ErrorHandler.showErrorDialog("ダウンロードフォルダが見つからないため処理を中止します。");
-            return;
+            return false;
         }
         
         // テンプレートのファイル名を生成
@@ -275,7 +275,14 @@ public class CSVHandler {
             templateWriter.newLine();
 
             // 社員情報リストがあれば書き込む
-            if (exportEmployeeList != null) {
+            if (exportEmployeeList == null) {
+                LOGGER.logOutput("1000行分の連番を入力。");
+                    for (int i = 0; i  < 1000; i++) {
+                    templateWriter.write(String.valueOf(i + 1));
+                    templateWriter.newLine();
+                }
+                LOGGER.logOutput("連番の入力完了。");
+            } else {
                 LOGGER.logOutput("社員データを入力。");
                 for (int i = 0; i  < exportEmployeeList.size(); i++) {
                     // 社員情報の先頭に連番(1,2,3…)と空白(追加・更新用の列)を付与して書き込む
@@ -286,9 +293,12 @@ public class CSVHandler {
             }
 
             LOGGER.logOutput("CSVテンプレートの出力完了。");
+            return true;
             
         } catch (IOException e) {
             LOGGER.logException("CSVテンプレートファイルを作成中にエラーが発生しました。", e);
+            ErrorHandler.showErrorDialog("CSVテンプレートファイルを作成中にエラーが発生しました。");
+            return false;
         }
     }
 
