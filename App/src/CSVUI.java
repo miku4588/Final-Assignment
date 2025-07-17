@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 // JFrameを継承する
-public class CSVUI extends JFrame {
+public class CSVUI extends JDialog {
     // ロガーを取得
     private static final EmployeeInfoLogger LOGGER = EmployeeInfoLogger.getInstance();
     
@@ -16,7 +16,7 @@ public class CSVUI extends JFrame {
     private JButton importButton = new JButton("読み込む");
     
     // 読み込み中・保存中メッセージ
-    private JDialog processingDialog = new JDialog(this, true); // true…親ウィンドウの操作をブロック
+    private JDialog processingDialog = new JDialog(this, Dialog.ModalityType.APPLICATION_MODAL); // APPLICATION_MODAL…自分以外の全てのウィンドウの操作をブロック
 
     // 確認ダイアログ
     private JDialog confirmDialog = new JDialog(this, "確認", true); // true…親ウィンドウの操作をブロック
@@ -30,61 +30,60 @@ public class CSVUI extends JFrame {
     /**
      * コンストラクタ(CSV読み込み画面を表示する)
      */
-    public CSVUI() {
-        
-        // 画面に関する処理はinvokeLaterで囲むのが安全
-        SwingUtilities.invokeLater(() -> {
-            setTitle("CSV読み込み");
-            setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // ×が押されたら…このウィンドウだけ終了
-            setLayout(new BorderLayout(10, 10));
-            
-            // 上部パネル…テンプレートダウンロードボタン
-            JPanel topPanel = new JPanel();
-            topPanel.add(templateButton);
-            add(topPanel, BorderLayout.NORTH);
-            
-            // 中央パネル…ファイルパス表示フィールド + ファイル選択ボタン
-            filePathField.setEditable(false); // ファイルパス表示フィールドを編集不可に
-            JPanel centerPanel = new JPanel();
-            centerPanel.add(filePathField);
-            centerPanel.add(selectButton);
-            add(centerPanel, BorderLayout.CENTER);
-            
-            // 下部パネル…読み込むボタン
-            JPanel bottomPanel = new JPanel();
-            bottomPanel.add(importButton);
-            add(bottomPanel, BorderLayout.SOUTH);
-            
-            // ファイル選択ボタンにイベントリスナーを追加
-            selectButton.addActionListener(e -> {
-                JFileChooser chooser = new JFileChooser(); // ファイル選択ダイアログ
-                int chooserCode = chooser.showOpenDialog(this); // chooserを開き、ユーザーの操作を整数で返す
-                if (chooserCode == JFileChooser.APPROVE_OPTION) { // APPROVE_OPTION…ユーザーが「開く」を選択した場合
-                    File file = chooser.getSelectedFile(); // ユーザーが選択したファイル
-                    filePathField.setText(file.getAbsolutePath()); // 絶対パスをfilePathFieldに渡す
-                }
-            });
-            
-            // 読み込むボタンにイベントリスナーを追加
-            importButton.addActionListener(e -> {
-                if (filePathField.getText().isEmpty()) { // ファイル選択されてない場合
-                    ErrorHandler.showErrorDialog("ファイルを選択してください。");
-                    return; // イベントリスナーから抜ける
-                }
-                loadCSV(filePathField.getText()); // CSV読み込み処理
-            });
+    public CSVUI(JFrame parent) {
+        super(parent, "CSV読み込み", true); // true…親ウィンドウの操作をブロック
 
-            // テンプレートダウンロードボタンにイベントリスナーを追加
-            templateButton.addActionListener(e -> {
-                CSVHandler.exportTemplateCSV(null);
-            });
-            
-            // 表示させる
-            pack(); // ウィンドウサイズ自動調整
-            setLocationRelativeTo(null); // 画面中央に表示
-            setVisible(true); // 可視化
-            LOGGER.logOutput("CSV読み込み画面を表示。");
+        setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE); // ×が押されたら…このウィンドウだけ終了
+        setLayout(new BorderLayout(10, 10));
+
+        // 上部パネル…テンプレートダウンロードボタン
+        JPanel topPanel = new JPanel();
+        topPanel.add(templateButton);
+        add(topPanel, BorderLayout.NORTH);
+
+        // 中央パネル…ファイルパス表示フィールド + ファイル選択ボタン
+        filePathField.setEditable(false); // ファイルパス表示フィールドを編集不可に
+        JPanel centerPanel = new JPanel();
+        centerPanel.add(filePathField);
+        centerPanel.add(selectButton);
+        add(centerPanel, BorderLayout.CENTER);
+
+        // 下部パネル…読み込むボタン
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.add(importButton);
+        add(bottomPanel, BorderLayout.SOUTH);
+
+        // ファイル選択ボタンにイベントリスナーを追加
+        selectButton.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser(); // ファイル選択ダイアログ
+            int chooserCode = chooser.showOpenDialog(this); // chooserを開き、ユーザーの操作を整数で返す
+            if (chooserCode == JFileChooser.APPROVE_OPTION) { // APPROVE_OPTION…ユーザーが「開く」を選択した場合
+                File file = chooser.getSelectedFile(); // ユーザーが選択したファイル
+                filePathField.setText(file.getAbsolutePath()); // 絶対パスをfilePathFieldに渡す
+            }
         });
+
+        // 読み込むボタンにイベントリスナーを追加
+        importButton.addActionListener(e -> {
+            if (filePathField.getText().isEmpty()) { // ファイル選択されてない場合
+                ErrorHandler.showErrorDialog("ファイルを選択してください。");
+                return; // イベントリスナーから抜ける
+            }
+            loadCSV(filePathField.getText()); // CSV読み込み処理
+        });
+
+        // テンプレートダウンロードボタンにイベントリスナーを追加
+        templateButton.addActionListener(e -> {
+            if (CSVHandler.tryExportTemplateCSV(null)) {
+                JOptionPane.showMessageDialog(this, "CSVテンプレートを出力しました。", "テンプレート出力完了", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+
+        // 表示させる
+        pack(); // ウィンドウサイズ自動調整
+        setLocationRelativeTo(parent); // 親ウィンドウを基準に表示
+        setVisible(true); // 可視化
+        LOGGER.logOutput("CSV読み込み画面を表示。");
     }
 
 
