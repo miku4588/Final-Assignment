@@ -77,7 +77,7 @@ public class ListViewUI {
 
         // 絞り込みボタン 🔴機能落ちさせます。。。
         filteredSearchButton = new JButton("絞り込み検索");
-        filteredSearchButton.setEnabled(false); // 非活性にしておく
+        filteredSearchButton.setEnabled(false); // 機能が使えないため非活性にしておく
         controlPanel.add(filteredSearchButton);
 
         // 新規追加ボタン
@@ -91,7 +91,14 @@ public class ListViewUI {
         pupMenu.add(button2);
         // ポップアップ1　CSV読込
         button1.addActionListener(e -> {
-            new CSVUI(frame);
+            CSVUI csvui = new CSVUI(frame);
+            // csvuiが閉じられたら
+            csvui.addWindowListener(new java.awt.event.WindowAdapter() {
+                @Override
+                public void windowClosed(java.awt.event.WindowEvent e) {
+                    keywordSearch(null); // 画面を更新するため、キーワードなしで検索
+                }
+            });
         });
         // ポップアップ2　1名追加
         button2.addActionListener(e -> {
@@ -279,6 +286,7 @@ public class ListViewUI {
             processingDialog.getContentPane().add(processingPanel);
             processingDialog.pack(); // ウィンドウサイズ自動調整
             processingDialog.setLocationRelativeTo(this.frame); // 表示位置は親ウィンドウが基準
+            SwingUtilities.invokeLater(() -> processingDialog.setVisible(true)); // EDT上でダイアログを表示
 
             // 削除処理を行うスレッドを作成
             Thread deleteThread = new Thread(() -> {
@@ -294,12 +302,11 @@ public class ListViewUI {
                 SwingUtilities.invokeLater(() -> {
                     processingDialog.dispose();
                     JOptionPane.showMessageDialog(frame, "選択された従業員を削除しました。", "完了", JOptionPane.INFORMATION_MESSAGE);
+                    keywordSearch(null); // 画面を更新するため、キーワードなしで検索
                 });
             });
 
-            // 処理中メッセージを表示し、削除処理を実行
-            processingDialog.setVisible(true);
-            deleteThread.start();
+            deleteThread.start(); // 削除処理を実行
         }
     }
 
