@@ -250,7 +250,6 @@ class ButtonPanel extends JPanel {
                 frame.dispose();
             }
         }
-
     }
 
     /** 言語選択バリデーション */
