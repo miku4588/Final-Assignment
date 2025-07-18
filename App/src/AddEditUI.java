@@ -285,6 +285,7 @@ class ButtonPanel extends JPanel {
                 frame.dispose();
             }
         }
+
     }
 
     /** 言語選択バリデーション */
@@ -306,6 +307,7 @@ class ButtonPanel extends JPanel {
 
     public void updateFieldValidation(Component field, boolean isValid) {
         ((JComponent) field).setBorder(new LineBorder(isValid ? Color.GRAY : Color.RED, 1));
+
     }
 
     /**
