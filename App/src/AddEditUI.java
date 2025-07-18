@@ -21,57 +21,39 @@ public class AddEditUI {
     private JLabel creationDateLabel;
     private JLabel lastUpdatedDateLabel;
     private JTextField employeeIdField;
-    private JTextField employeeNameField;
-    private JTextField employeeAgeField;
-    private JTextField employeeDepartmentField;
-    private JTextField employeeEmailField;
-    private JButton saveButton;
-    private JButton cancelButton;
-    private JButton editButton;
 
-    /** UIコンポーネントを初期化 */
+    /**
+     * 新規データ追加用のコンストラクタ
+     */
     public AddEditUI() {
-        initialize();
+        initialize(false);
     }
 
+    /**
+     * 既存データ編集用のコンストラクタ
+     * @param emp 編集したい社員の情報
+     */
     public AddEditUI(EmployeeInfo emp) {
-        initialize();
+        initialize(true);
         if (emp != null) {
             frame.setTitle("エンジニア編集"); // タイトルも変える
             setEmployeeInfo(emp); // フォームにデータをセット
-            setEditMode(true); // 編集フラグ設定
+            employeeIdField.setEditable(false); // 社員IDを編集不可にする
         }
     }
 
-    private void setEditMode(boolean isEditMode) {
-        // 社員IDは編集禁止にするケースが多いのでfalse固定にすることも多いです
-        employeeIdField.setEditable(false); // もし編集OKならisEditModeに変えてください
-
-        // 他の編集可能なフィールドはモードに合わせて切り替え
-        employeeNameField.setEditable(isEditMode);
-        employeeAgeField.setEditable(isEditMode);
-        employeeDepartmentField.setEditable(isEditMode);
-        employeeEmailField.setEditable(isEditMode);
-
-        // ボタン類は編集モードなら保存・キャンセルを有効にし、
-        // 編集ボタンは無効にして、編集モード外なら逆にするイメージ
-        saveButton.setEnabled(isEditMode);
-        cancelButton.setEnabled(isEditMode);
-        editButton.setEnabled(!isEditMode);
-    }
-
     /** UIコンポーネントの設定とレイアウト */
-    private void initialize() {
+    private void initialize(Boolean isEditMode) {
         frame = new JFrame("エンジニア新規追加");
         frame.setSize(1000, 700);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setLayout(new BorderLayout());
-
-        formPanel = new EmployeeFormPanel();
-
+        
         JPanel idPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 3));
         JLabel employeeIdLabel = new JLabel("社員ID: ");
         this.employeeIdField = new JTextField(15);
+        
+        formPanel = new EmployeeFormPanel(employeeIdField);
 
         idPanel.add(employeeIdLabel);
         idPanel.add(this.employeeIdField);
@@ -79,7 +61,8 @@ public class AddEditUI {
         ButtonPanel buttonPanel = new ButtonPanel(
                 frame,
                 formPanel,
-                this.employeeIdField // クラスフィールドを渡す
+                this.employeeIdField, // クラスフィールドを渡す
+                isEditMode
         );
 
         // 日付表示設定
@@ -114,7 +97,6 @@ public class AddEditUI {
 
         frame.add(container, BorderLayout.CENTER);
         frame.setVisible(true);
-
     }
 
     public void setEmployeeInfo(EmployeeInfo emp) {
@@ -124,7 +106,6 @@ public class AddEditUI {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(AddEditUI::new);
     }
-
 }
 
 /**
@@ -137,34 +118,18 @@ class ButtonPanel extends JPanel {
     private JTextField employeeIdField;
     private boolean isEditMode;
 
+    /**
+     * ボタンとアクションリスナーを初期化
+     * @param frame           親フレーム
+     * @param formPanel       フォームパネル
+     * @param employeeIdField 社員ID入力フィールド
+     * @param isEditMode
+     */
     public ButtonPanel(JFrame frame, EmployeeFormPanel formPanel, JTextField employeeIdField, boolean isEditMode) {
         this.frame = frame;
         this.formPanel = formPanel;
         this.employeeIdField = employeeIdField;
         this.isEditMode = isEditMode;
-
-        setLayout(new FlowLayout(FlowLayout.RIGHT));
-        JButton saveButton = new JButton("保存");
-        JButton cancelButton = new JButton("戻る");
-
-        saveButton.addActionListener(e -> saveEmployee());
-        cancelButton.addActionListener(e -> showDiscardDialog());
-
-        add(saveButton);
-        add(cancelButton);
-    }
-
-    /**
-     * ボタンとアクションリスナーを初期化
-     * 
-     * @param frame           親フレーム
-     * @param formPanel       フォームパネル
-     * @param employeeIdField 社員ID入力フィールド
-     */
-    public ButtonPanel(JFrame frame, EmployeeFormPanel formPanel, JTextField employeeIdField) {
-        this.frame = frame;
-        this.formPanel = formPanel;
-        this.employeeIdField = employeeIdField;
 
         setLayout(new FlowLayout(FlowLayout.RIGHT));
         JButton saveButton = new JButton("保存");
@@ -399,67 +364,10 @@ class EmployeeFormPanel extends JPanel {
         remarksArea.setText(emp.getRemarks());
 
         // 言語選択のチェックボックスは一旦全部オフにしてから
-        List<String> selectedLangs = (List<String>) emp.getLanguages(); // List<String>想定
+        Set<String> selectedLangs = emp.getLanguages();
         for (JCheckBox cb : languageCheckboxes) {
             cb.setSelected(selectedLangs.contains(cb.getText()));
         }
-    }
-
-    public EmployeeInfo getEmployeeInfo() {
-        String id = employeeIdField.getText();
-        String name = nameField.getText();
-        String phonetic = phoneticField.getText();
-
-        String esyStr = (String) engineerStartYearBox.getSelectedItem();
-
-        String technicalSkillStr = (String) technicalSkillCombo.getSelectedItem();
-        String attitudeStr = (String) attitudeCombo.getSelectedItem();
-        String communicationSkillStr = (String) communicationSkillCombo.getSelectedItem();
-        String leadershipStr = (String) leadershipCombo.getSelectedItem();
-
-        BirthDate birthDateObj = new BirthDate(
-                String.format("%s/%s/%s",
-                        (String) birthYearCombo.getSelectedItem(),
-                        (String) birthMonthCombo.getSelectedItem(),
-                        (String) birthDayCombo.getSelectedItem()));
-
-        JoinYearMonth joinYearMonthObj = new JoinYearMonth(
-                String.format("%s/%s",
-                        (String) joinYearCombo.getSelectedItem(),
-                        (String) joinMonthCombo.getSelectedItem()));
-
-        EngineerStartYear engineerStartYearObj = new EngineerStartYear(esyStr);
-
-        TechnicalSkill technicalSkillObj = new TechnicalSkill(technicalSkillStr);
-        Attitude attitudeObj = new Attitude(attitudeStr);
-        CommunicationSkill communicationSkillObj = new CommunicationSkill(communicationSkillStr);
-        Leadership leadershipObj = new Leadership(leadershipStr);
-
-        // チェックされた言語のセットを作成
-        Set<String> selectedLangs = languageCheckboxes.stream()
-                .filter(JCheckBox::isSelected)
-                .map(JCheckBox::getText)
-                .collect(Collectors.toSet());
-
-        EmployeeInfo employeeInfo = new EmployeeInfo(
-                new EmployeeId(id),
-                new Name(name),
-                new Phonetic(phonetic),
-                birthDateObj,
-                joinYearMonthObj,
-                engineerStartYearObj,
-                technicalSkillObj,
-                attitudeObj,
-                communicationSkillObj,
-                leadershipObj,
-                new Career(careerArea.getText()),
-                new TrainingHistory(trainingHistoryArea.getText()),
-                new Remarks(remarksArea.getText()),
-                new Languages(selectedLangs),
-                LocalDate.now(),
-                LocalDate.now());
-
-        return employeeInfo;
     }
 
     // 職業情報フィールド
@@ -477,8 +385,8 @@ class EmployeeFormPanel extends JPanel {
     private JTextArea careerArea, trainingHistoryArea, remarksArea;
 
     /** フォームレイアウト初期化 */
-    public EmployeeFormPanel() {
-        employeeIdField = new JTextField(15);
+    public EmployeeFormPanel(JTextField employeeIdField) {
+        this.employeeIdField = employeeIdField;
         setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 10, 10, 10);
@@ -826,5 +734,4 @@ class EmployeeFormPanel extends JPanel {
             updateFieldValidation(component, false); // NGなら更新
         }
     }
-
 }
