@@ -538,13 +538,17 @@ public class CSVHandler {
 
                 // ダブルクォートが偶数個ならListへ、そうでないなら次の行を連結
                 if (quoteCount % 2 == 0) {
-                    parseLineList.add(buffer.toString()); // Listに格納
+                    String[] data = line.split(","); // フィールドの個数を数える
+                    if(data.length > 1) {
+                        parseLineList.add(buffer.toString()); // フィールドが2個以上（連番の他にも何かある）のときだけリストに格納
+                    }
                     buffer.setLength(0); // バッファを空にする
                 } else {
                     buffer.append("\n"); // 改行して行を連結
                 }
             }
 
+            // 実は中身が空のパターンの対応
             if(parseLineList.size() == 1 && parseLineList.get(0) == "") {
                 parseLineList.remove(0);
             }
