@@ -7,7 +7,10 @@ public class Name extends EmployeeInfoValidator {
     private String name;
 
     public Name(String name) {
-        if ( !validateInput(name)) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("氏名は必須です");
+        }
+        if (!validateInput(name)) {
             throw new IllegalArgumentException("氏名は0〜20文字の範囲でのみ使用できます。");
         }
         this.name = name;
