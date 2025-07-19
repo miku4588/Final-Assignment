@@ -12,19 +12,19 @@ public class Languages {
     }
 
     public Languages(Set<String> languagesSet) {
-    this(); // 初期化
-    addLanguages(languagesSet); // 複数言語を追加する既存メソッドを使う
-}
+        this(); // 初期化
+        addLanguages(languagesSet); // 複数言語を追加する既存メソッドを使う
+    }
 
     public Languages(String language) {
-    this(); // 引数なしコンストラクタを呼んでセット初期化
-    addLanguage(language);
-}
+        this(); // 引数なしコンストラクタを呼んでセット初期化
+        addLanguage(language);
+    }
 
     // 1つの言語を追加
     public boolean addLanguage(String language) {
-        if (language != null && !language.trim().isEmpty()) {
-            languages.add(language.trim());
+        if (language != null) { // nullだけNGにする
+            languages.add(language);
             return true;
         }
         System.out.println("無効な言語です: " + language);
@@ -46,4 +46,13 @@ public class Languages {
     public Set<String> getLanguages() {
         return new HashSet<>(languages); // コピーを返す（外部からの書き換え防止）
     }
+
+    @Override
+    public String toString() {
+        if (languages.isEmpty()) {
+            return "";
+        }
+        return String.join(", ", languages);
+    }
+
 }
