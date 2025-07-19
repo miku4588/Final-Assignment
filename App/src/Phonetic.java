@@ -6,7 +6,10 @@ class Phonetic extends EmployeeInfoValidator {
     private String phonetic;
 
     public Phonetic(String phonetic) {
-        if (phonetic == null || !validateInput(phonetic)) {
+        if (phonetic == null || phonetic.trim().isEmpty()) {
+            throw new IllegalArgumentException("氏名カナは必須です");
+        }
+        if (!validateInput(phonetic)) {
             throw new IllegalArgumentException("氏名カナは1〜30文字の範囲で、全角カナ・全角スペース・半角スペースのみ使用できます。");
         }
         this.phonetic = phonetic;
@@ -34,7 +37,5 @@ class Phonetic extends EmployeeInfoValidator {
     public String getPhonetic() {
         return phonetic;
     }
-
-   
 
 }
