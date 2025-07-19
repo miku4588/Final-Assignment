@@ -4,7 +4,6 @@
  */
 class EmployeeId extends EmployeeInfoValidator {
     private String employeeId;
-    
 
     /**
      * 従業員IDを設定するコンストラクタ。
@@ -14,6 +13,9 @@ class EmployeeId extends EmployeeInfoValidator {
      * @throws IllegalArgumentException 従業員IDが無効な場合（半角英数字のみ使用可能）
      */
     public EmployeeId(String employeeId) {
+        if (employeeId == null || employeeId.trim().isEmpty()) {
+            throw new IllegalArgumentException("社員IDは必須です");
+        }
         if (!validateInput(employeeId)) {
             throw new IllegalArgumentException("従業員IDは半角英数字のみ使用できます。");
         }
@@ -40,8 +42,5 @@ class EmployeeId extends EmployeeInfoValidator {
     public String getEmployeeId() {
         return employeeId;
     }
-
-    
-
 
 }
