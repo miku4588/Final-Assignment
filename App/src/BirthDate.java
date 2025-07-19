@@ -10,12 +10,12 @@ import java.time.format.DateTimeParseException;
 class BirthDate extends EmployeeInfoValidator {
     private LocalDate birthDate;
 
- public BirthDate(String birthString) {
-   // if (!validateInput(birthString)) {
-        //throw new IllegalArgumentException("生年月日のフォーマットが正しくありません");
-//}
-    this.birthDate = LocalDate.parse(birthString, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-}
+    public BirthDate(String birthString) {
+        String normalizedDateStr = birthString.replace("-", "/");
+        System.out.println("normalizedDateStr = " + normalizedDateStr);
+        this.birthDate = LocalDate.parse(normalizedDateStr, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+
+    }
 
     /**
      * 生年月日のフォーマットを検証
