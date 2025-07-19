@@ -7,15 +7,19 @@ class JoinYearMonth extends EmployeeInfoValidator {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM");
 
     public JoinYearMonth(String joinYearMonth) {
-        if (!validateInput(joinYearMonth)) {
-            throw new IllegalArgumentException("入社年月はYYYY/MM形式で入力してください。");
-        }
-        this.joinYearMonth = YearMonth.parse(joinYearMonth, FORMATTER);
+        String normalized = joinYearMonth.replace("-", "/");
+        this.joinYearMonth = YearMonth.parse(normalized, FORMATTER);
+    }
+
+    @Override
+    public String toString() {
+        return joinYearMonth.format(FORMATTER);
     }
 
     @Override
     protected boolean validateInput(String value) {
-        if (value == null) return false;
+        if (value == null)
+            return false;
         try {
             YearMonth.parse(value, FORMATTER);
             return true;
@@ -24,10 +28,8 @@ class JoinYearMonth extends EmployeeInfoValidator {
         }
     }
 
-
     public YearMonth getJoinYearMonth() {
         return joinYearMonth;
     }
-
 
 }
