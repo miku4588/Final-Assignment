@@ -4,6 +4,7 @@ import javax.swing.text.JTextComponent;
 
 import java.awt.event.*;
 import java.time.*;
+//import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
 import java.util.function.*;
@@ -31,6 +32,7 @@ public class AddEditUI {
 
     /**
      * 既存データ編集用のコンストラクタ
+     * 
      * @param emp 編集したい社員の情報
      */
     public AddEditUI(EmployeeInfo emp) {
@@ -39,6 +41,14 @@ public class AddEditUI {
             frame.setTitle("エンジニア編集"); // タイトルも変える
             setEmployeeInfo(emp); // フォームにデータをセット
             employeeIdField.setEditable(false); // 社員IDを編集不可にする
+            // 日付表示設定
+            String currentDate = new SimpleDateFormat("yyyy/MM/d").format(new Date());
+            creationDateLabel = new JLabel("データ作成日: " + currentDate);
+            lastUpdatedDateLabel = new JLabel("最終更新日: " + currentDate);
+            JPanel datePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            datePanel.add(creationDateLabel);
+            datePanel.add(lastUpdatedDateLabel);
+            frame.add(datePanel, BorderLayout.SOUTH);
         }
     }
 
@@ -48,11 +58,11 @@ public class AddEditUI {
         frame.setSize(1000, 700);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setLayout(new BorderLayout());
-        
+
         JPanel idPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 3));
         JLabel employeeIdLabel = new JLabel("社員ID: ");
         this.employeeIdField = new JTextField(15);
-        
+
         formPanel = new EmployeeFormPanel(employeeIdField);
 
         idPanel.add(employeeIdLabel);
@@ -62,17 +72,15 @@ public class AddEditUI {
                 frame,
                 formPanel,
                 this.employeeIdField, // クラスフィールドを渡す
-                isEditMode
-        );
+                isEditMode);
 
         // 日付表示設定
         String currentDate = new SimpleDateFormat("yyyy/MM/d").format(new Date());
         creationDateLabel = new JLabel("データ作成日: " + currentDate);
-        lastUpdatedDateLabel = new JLabel("最終更新日: " + currentDate);
-
+        // lastUpdatedDateLabel = new JLabel("最終更新日: " + currentDate);
         JPanel datePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         datePanel.add(creationDateLabel);
-        datePanel.add(lastUpdatedDateLabel);
+        // datePanel.add(lastUpdatedDateLabel);
         frame.add(datePanel, BorderLayout.SOUTH);
 
         // メインレイアウト設定
@@ -120,6 +128,7 @@ class ButtonPanel extends JPanel {
 
     /**
      * ボタンとアクションリスナーを初期化
+     * 
      * @param frame           親フレーム
      * @param formPanel       フォームパネル
      * @param employeeIdField 社員ID入力フィールド
@@ -131,15 +140,16 @@ class ButtonPanel extends JPanel {
         this.employeeIdField = employeeIdField;
         this.isEditMode = isEditMode;
 
-        setLayout(new FlowLayout(FlowLayout.RIGHT));
-        JButton saveButton = new JButton("保存");
-        JButton cancelButton = new JButton("戻る");
+        setLayout(new FlowLayout(FlowLayout.RIGHT)); // ボタンを右寄せ
+        JButton saveButton = new JButton("保存"); // ボタンを作成＝表示はされない
+        JButton cancelButton = new JButton("キャンセル"); // ボタンを作成
 
         saveButton.addActionListener(e -> saveEmployee());
         cancelButton.addActionListener(e -> showDiscardDialog());
 
-        add(saveButton);
-        add(cancelButton);
+        add(saveButton); // ボタンをパネルに追加=表示される
+        add(cancelButton);// ボタンをパネルに追加
+
     }
 
     /** 従業員情報保存処理 */
@@ -154,13 +164,14 @@ class ButtonPanel extends JPanel {
 
         // フィールドバリデーション一括実行
         validateField("employeeId", employeeIdField, text -> new EmployeeId(text), errors, fieldValues);
-        validateField("name", formPanel.getNameField(), text -> new Name(text), errors, fieldValues);
         validateField("phonetic", formPanel.getPhoneticField(), text -> new Phonetic(text), errors, fieldValues);
+        validateField("name", formPanel.getNameField(), text -> new Name(text), errors, fieldValues);
+
         // 生年月日
         validateField(
                 "birthDate",
                 formPanel.getBirthYearCombo(),
-                s -> new BirthDate(formPanel.getBirthDate()),
+                s -> new BirthDate(formPanel.getBirthDate()), // ← これでOK
                 errors,
                 fieldValues);
 
@@ -183,11 +194,14 @@ class ButtonPanel extends JPanel {
                 text -> new CommunicationSkill(text), errors, fieldValues);
         validateField("leadership", formPanel.getLeadershipCombo(), text -> new Leadership(text), errors, fieldValues);
 
-        // テキストエリア
-        validateField("career", formPanel.getCareerArea(), text -> new Career(text), errors, fieldValues);
-        validateField("trainingHistory", formPanel.getTrainingHistoryArea(), text -> new TrainingHistory(text), errors,
-                fieldValues);
-        validateField("remarks", formPanel.getRemarksArea(), text -> new Remarks(text), errors, fieldValues);
+        validateField("career", formPanel.getCareerArea(),
+                text -> new Career(escapeForCSV(text)), errors, fieldValues);
+
+        validateField("trainingHistory", formPanel.getTrainingHistoryArea(),
+                text -> new TrainingHistory(escapeForCSV(text)), errors, fieldValues);
+
+        validateField("remarks", formPanel.getRemarksArea(),
+                text -> new Remarks(escapeForCSV(text)), errors, fieldValues);
 
         // 言語選択バリデーション
         validateLanguages(errors, fieldValues);
@@ -223,7 +237,7 @@ class ButtonPanel extends JPanel {
                     ((EmployeeId) fieldValues.get("employeeId")).getEmployeeId(),
                     ((Name) fieldValues.get("name")).getName(),
                     ((Phonetic) fieldValues.get("phonetic")).getPhonetic(),
-                    ((BirthDate) fieldValues.get("birthDate")).toString(),
+                    ((BirthDate) fieldValues.get("birthDate")).getBirthDate().toString(),
                     ((JoinYearMonth) fieldValues.get("joinYearMonth")).toString(),
                     ((EngineerStartYear) fieldValues.get("engineerStartYear")).getEngineerStartYear().toString(),
                     String.valueOf(((TechnicalSkill) fieldValues.get("technicalSkill")).getTechnicalSkill()),
@@ -236,20 +250,93 @@ class ButtonPanel extends JPanel {
                     ((Remarks) fieldValues.get("remarks")).getRemarks(),
                     ((Languages) fieldValues.get("languages")).toString(),
                     (employeeInfo, isNew) -> CSVHandler.writeCSV(employeeInfo, isNew));
-
-            if (result) {
-                JOptionPane.showMessageDialog(frame, "更新しました。", "完了", JOptionPane.INFORMATION_MESSAGE);
-                frame.dispose();
-            } else {
-                JOptionPane.showMessageDialog(frame, "更新に失敗しました。", "エラー", JOptionPane.ERROR_MESSAGE);
-            }
-
-        } else {
-            if (EmployeeAdder.addEmployee(newEmployee)) {
-                JOptionPane.showMessageDialog(frame, "保存しました。", "完了", JOptionPane.INFORMATION_MESSAGE);
-                frame.dispose();
-            }
         }
+
+        // 処理中ダイアログを作成
+        JDialog progressDialog = new JDialog(frame, isEditMode ? "更新中" : "処理中", true);
+        progressDialog.setLayout(new BorderLayout());
+
+        JLabel label = new JLabel(isEditMode ? "更新中です..." : "保存中です...", SwingConstants.CENTER);
+        label.setFont(new Font("SansSerif", Font.PLAIN, 16));
+        progressDialog.add(label, BorderLayout.CENTER);
+
+        progressDialog.setSize(250, 120);
+        progressDialog.setLocationRelativeTo(frame);
+        progressDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+
+        // SwingWorker で非同期に保存 or 編集
+        SwingWorker<Boolean, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Boolean doInBackground() {
+                try {
+                    Thread.sleep(500); // ダイアログの見栄え調整
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                if (isEditMode) {
+                    // 編集処理（非同期）
+                    return EmployeeEditor.editEmployee(
+                            ((EmployeeId) fieldValues.get("employeeId")).getEmployeeId(),
+                            ((Name) fieldValues.get("name")).getName(),
+                            ((Phonetic) fieldValues.get("phonetic")).getPhonetic(),
+                            ((BirthDate) fieldValues.get("birthDate")).getBirthDate().toString(),
+                            ((JoinYearMonth) fieldValues.get("joinYearMonth")).toString(),
+                            ((EngineerStartYear) fieldValues.get("engineerStartYear")).getEngineerStartYear()
+                                    .toString(),
+                            String.valueOf(((TechnicalSkill) fieldValues.get("technicalSkill")).getTechnicalSkill()),
+                            String.valueOf(((Attitude) fieldValues.get("attitude")).getAttitude()),
+                            String.valueOf(((CommunicationSkill) fieldValues.get("communicationSkill"))
+                                    .getCommunicationSkill()),
+                            String.valueOf(((Leadership) fieldValues.get("leadership")).getLeadership()),
+                            ((TrainingHistory) fieldValues.get("trainingHistory")).getTrainingHistory(),
+                            ((Career) fieldValues.get("career")).getCareer(),
+                            ((Remarks) fieldValues.get("remarks")).getRemarks(),
+                            ((Languages) fieldValues.get("languages")).toString(),
+                            (employeeInfo, isNew) -> CSVHandler.writeCSV(employeeInfo, isNew));
+                } else {
+                    // 新規登録処理（非同期）
+                    return EmployeeAdder.addEmployee(newEmployee);
+                }
+            }
+
+            @Override
+            protected void done() {
+                progressDialog.dispose();
+                try {
+                    boolean result = get();
+                    if (result) {
+                        JOptionPane.showMessageDialog(frame,
+                                isEditMode ? "更新しました。" : "保存しました。",
+                                "完了",
+                                JOptionPane.INFORMATION_MESSAGE);
+                        frame.dispose();
+                        new ListViewUI(EmployeeManager.getInstance());
+                    } else {
+                        JOptionPane.showMessageDialog(frame,
+                                isEditMode ? "更新に失敗しました。" : "保存に失敗しました。",
+                                "エラー",
+                                JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(frame, "エラーが発生しました。", "例外", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        };
+
+        worker.execute();
+        progressDialog.setVisible(true);
+    }
+
+    private String escapeForCSV(String text) {
+        if (text == null)
+            return "";
+        String escaped = text.replace("\"", "\"\"");
+        if (escaped.contains(",") || escaped.contains("\n") || escaped.contains("\"")) {
+            escaped = "\"" + escaped + "\"";
+        }
+        return escaped;
     }
 
     /** 言語選択バリデーション */
@@ -316,7 +403,9 @@ class ButtonPanel extends JPanel {
     private void showDiscardDialog() {
         if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
                 frame, "変更を破棄しますか？", "確認", JOptionPane.YES_NO_OPTION)) {
-            frame.dispose();
+            frame.setVisible(false);
+            // 一覧画面を開く
+            new ListViewUI(EmployeeManager.getInstance());
         }
     }
 }
@@ -335,14 +424,20 @@ class EmployeeFormPanel extends JPanel {
 
     public void setEmployeeInfo(EmployeeInfo emp) {
         employeeIdField.setText(emp.getEmployeeId());
-        nameField.setText(emp.getName());
         phoneticField.setText(emp.getPhonetic());
+        nameField.setText(emp.getName());
 
-        LocalDate birthDate = emp.getBirthDate(); // LocalDate型と仮定
-
-        birthYearCombo.setSelectedItem(String.valueOf(birthDate.getYear()));
-        birthMonthCombo.setSelectedItem(String.format("%02d", birthDate.getMonthValue())); // 2桁ゼロ埋め
-        birthDayCombo.setSelectedItem(String.format("%02d", birthDate.getDayOfMonth())); // 2桁ゼロ埋め
+        if (emp.getBirthDate() != null) {
+            LocalDate birthDate = emp.getBirthDate();
+            birthYearCombo.setSelectedItem(String.valueOf(birthDate.getYear()));
+            birthMonthCombo.setSelectedItem(String.format("%02d", birthDate.getMonthValue()));
+            birthDayCombo.setSelectedItem(String.format("%02d", birthDate.getDayOfMonth()));
+        } else {
+            // 初期値クリア
+            birthYearCombo.setSelectedIndex(0);
+            birthMonthCombo.setSelectedIndex(0);
+            birthDayCombo.setSelectedIndex(0);
+        }
 
         YearMonth joinYearMonth = emp.getJoinYearMonth(); // YearMonth型と仮定
 
@@ -419,22 +514,22 @@ class EmployeeFormPanel extends JPanel {
 
         int row = 0;
 
-        // 名前フィールド
-        leftGbc.gridx = 0;
-        leftGbc.gridy = row;
-        leftPanel.add(new JLabel("名前:"), leftGbc);
-        leftGbc.gridx = 1;
-        nameField = new JTextField(25);
-        leftPanel.add(nameField, leftGbc);
-
         // フリガナフィールド
-        row++;
         leftGbc.gridx = 0;
         leftGbc.gridy = row;
         leftPanel.add(new JLabel("フリガナ:"), leftGbc);
         leftGbc.gridx = 1;
         phoneticField = new JTextField(25);
         leftPanel.add(phoneticField, leftGbc);
+
+        // 名前フィールド
+        row++;
+        leftGbc.gridx = 0;
+        leftGbc.gridy = row;
+        leftPanel.add(new JLabel("名前:"), leftGbc);
+        leftGbc.gridx = 1;
+        nameField = new JTextField(25);
+        leftPanel.add(nameField, leftGbc);
 
         // 生年月日（年、月、日のコンボボックス + ラベル）
         row++;
@@ -588,12 +683,12 @@ class EmployeeFormPanel extends JPanel {
 
     // === フィールドアクセサメソッド群 ===
 
-    public JTextField getNameField() {
-        return nameField;
-    }
-
     public JTextField getPhoneticField() {
         return phoneticField;
+    }
+
+    public JTextField getNameField() {
+        return nameField;
     }
 
     public JComboBox<String> getBirthYearCombo() {
