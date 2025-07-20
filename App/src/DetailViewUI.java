@@ -287,10 +287,10 @@ public class DetailViewUI extends JFrame {
     }
 
     /**
-     * 処理中メッセージを初期化する
+     * 削除中メッセージを表示（削除処理を実行）
      */
     private void showDeletingingDialog(String EmployeeIdString) {
-
+        Window parentWindow = this; // 親ウィンドウを渡すために定義
         JDialog deletingDialog = new JDialog(this, true); // true…親ウィンドウの操作をブロック
         deletingDialog.setUndecorated(true); // タイトルバーを消す（×ボタンも消える）
 
@@ -302,27 +302,35 @@ public class DetailViewUI extends JFrame {
         deletingDialog.pack(); // ウィンドウサイズ自動調整
         deletingDialog.setLocationRelativeTo(this); // 表示位置は親ウィンドウが基準
 
-        SwingUtilities.invokeLater(() -> deletingDialog.setVisible(true)); // 可視化
+        // SwingWorker定義（削除処理と「削除完了」メッセージ表示）
+        SwingWorker<Boolean, Void> deleter = new SwingWorker<Boolean, Void>() {
 
-        // 削除終わったら削除中メッセージを消す
-        if (EmployeeDeleter.deleteEmployee(EmployeeIdString)) {
-            SwingUtilities.invokeLater(() -> {
+            // バックグラウンドでやる処理
+            @Override
+            protected Boolean doInBackground() throws Exception {
+                return EmployeeDeleter.deleteEmployee(EmployeeIdString);
+            };
+
+            // バックグラウンド処理が終わったら実行
+            @Override
+            protected void done() {
                 deletingDialog.dispose();
-                this.dispose();
-                showDeletedDialog();
-            });
-        }
+
+                try {
+                    Boolean result = get(); // バックグラウンド処理の結果を取得
+                    if(result) {
+                        JOptionPane.showMessageDialog(parentWindow, "削除が完了しました。", "削除完了", JOptionPane.INFORMATION_MESSAGE);
+                        LOGGER.logOutput("削除が完了しました。");
+                    }
+                } catch (Exception e) {
+                    LOGGER.logException("予期せぬエラーが発生しました。", e);
+                    ErrorHandler.showErrorDialog("予期せぬエラーが発生しました。");
+                }
+
+            };
+        };
+
+        deleter.execute(); // SwingWorker実行
+        deletingDialog.setVisible(true); // 可視化
     }
-
-
-    /**
-     * 保存完了メッセージを表示する
-     */
-    private void showDeletedDialog() {
-
-        // JOptionPaneで十分そうなのでこれにしています。
-        // 今後の変更によりJOptionPaneでは表現できなくなる場合は、JDialogに変更します。
-        JOptionPane.showMessageDialog(this, "削除が完了しました。", "削除完了", JOptionPane.INFORMATION_MESSAGE);
-    }
-
 }
