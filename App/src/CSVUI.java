@@ -219,7 +219,7 @@ public class CSVUI extends JDialog {
 
             // ロックを取得
             synchronized (LOCK) {
-                CSVHandler.writeCSV(finalEmployeeList);
+                CSVHandler.tryWriteCSV(finalEmployeeList);
             }
 
             // 処理中メッセージを閉じて、保存完了メッセージを表示

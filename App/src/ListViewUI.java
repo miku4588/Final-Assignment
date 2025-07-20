@@ -10,6 +10,8 @@ import java.awt.event.*;
 
 
 public class ListViewUI {
+    // ロガーを取得
+    private static final EmployeeInfoLogger LOGGER = EmployeeInfoLogger.getInstance();
     // 従業員情報
     private EmployeeManager manager;
     // 検索結果の件数表示
@@ -286,27 +288,44 @@ public class ListViewUI {
             processingDialog.getContentPane().add(processingPanel);
             processingDialog.pack(); // ウィンドウサイズ自動調整
             processingDialog.setLocationRelativeTo(this.frame); // 表示位置は親ウィンドウが基準
-            SwingUtilities.invokeLater(() -> processingDialog.setVisible(true)); // EDT上でダイアログを表示
 
-            // 削除処理を行うスレッドを作成
-            Thread deleteThread = new Thread(() -> {
-                for (String employeeId : selectedIds) {
-                    boolean isSuccess = EmployeeDeleter.deleteEmployee(employeeId);
-                    if (!isSuccess) {
-                        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame,
-                                "従業員ID " + employeeId + " の削除に失敗しました。\nこれ以降の削除処理は行わず中断します。", "エラー", JOptionPane.ERROR_MESSAGE));
-                        return; // 失敗したらスレッドから強制離脱
+            // SwingWorker定義（削除処理と「削除完了」メッセージ表示）
+            SwingWorker<Boolean, Void> deleter = new SwingWorker<Boolean, Void>() {
+
+                // バックグラウンドでやる処理
+                @Override
+                protected Boolean doInBackground() throws Exception {
+                    for (String employeeId : selectedIds) {
+                        boolean isSuccess = EmployeeDeleter.deleteEmployee(employeeId);
+                        if (!isSuccess) {
+                            JOptionPane.showMessageDialog(frame, "従業員ID " + employeeId + " の削除に失敗しました。\nこれ以降の削除処理は行わず中断します。", "エラー",JOptionPane.ERROR_MESSAGE);
+                            return false; // 失敗したらループから強制離脱
+                        }
                     }
-                }
+                    return true;
+                };
 
-                SwingUtilities.invokeLater(() -> {
+                // バックグラウンド処理が終わったら実行
+                @Override
+                protected void done() {
                     processingDialog.dispose();
-                    JOptionPane.showMessageDialog(frame, "選択された従業員を削除しました。", "完了", JOptionPane.INFORMATION_MESSAGE);
-                    keywordSearch(null); // 画面を更新するため、キーワードなしで検索
-                });
-            });
 
-            deleteThread.start(); // 削除処理を実行
+                    try {
+                        Boolean result = get(); // バックグラウンド処理の結果を取得
+                        if (result) {
+                            JOptionPane.showMessageDialog(frame, "削除が完了しました。", "削除完了",JOptionPane.INFORMATION_MESSAGE);
+                            LOGGER.logOutput("削除が完了しました。");
+                        }
+                    } catch (Exception e) {
+                        LOGGER.logException("予期せぬエラーが発生しました。", e);
+                        ErrorHandler.showErrorDialog("予期せぬエラーが発生しました。");
+                    }
+
+                };
+            };
+
+            deleter.execute(); // SwingWorker実行
+            processingDialog.setVisible(true); // 可視化
         }
     }
 

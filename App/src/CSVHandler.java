@@ -109,28 +109,43 @@ public class CSVHandler {
 
 
     /**
-     * CSVファイルに、リストから一括で社員データを書き込む
+     * CSVファイルの中身を、受け取ったリストにまるまる差し替え
      * @param finalEmployeeList
      */
-    public static void writeCSV(List<EmployeeInfo> finalEmployeeList) {
+    public static Boolean tryWriteCSV(List<EmployeeInfo> finalEmployeeList) {
         LOGGER.logOutput("データCSVファイルへの書き込みを開始。");
         
         // スレッドを定義
-        Thread threadWriteCSV = new Thread(() -> {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Future<Boolean> threadWriteCSV = executor.submit(() -> {
+
             // データCSVのパスと、バックアップファイルのパスを定義
             Path originalPath = Paths.get(MainApp.DATA_FILE);
             Path backupPath = Paths.get(originalPath + ".bak");
-            
-            // finalEmployeeListをCSVに書き込む
-            saveEmployeeListToCSV(finalEmployeeList, originalPath, backupPath);
-        }, "CSVWriter");
 
-        threadWriteCSV.start();
+            // finalEmployeeListをCSVに書き込む
+            Boolean trySave = trySaveEmployeeListToCSV(finalEmployeeList, originalPath, backupPath);
+            return trySave;
+        });
+
+        try {
+            Boolean result = threadWriteCSV.get();
+            if (result) {
+                return true;
+            } else {
+                LOGGER.logOutput("データCSVファイルへの書き込みに失敗しました。");
+                return false;
+            }
+        } catch (Exception e) {
+                LOGGER.logException("データCSVファイルへの書き込みに失敗しました。", e);
+                return false;
+        }
     }
 
 
     /**
      * CSVファイルに、1名分の社員データを書き込む
+     * 💡本当はこっちのメソッドもBooleanにした方がいいと思うんですがすみません～～～
      * @param inputEmployee 書き込みたい社員データ
      * @param isNewEmployeeData trueなら新規追加、falseなら更新
      */
@@ -156,7 +171,7 @@ public class CSVHandler {
             }
 
             // finalEmployeeListをCSVに書き込む
-            saveEmployeeListToCSV(finalEmployeeList, originalPath, backupPath);
+            trySaveEmployeeListToCSV(finalEmployeeList, originalPath, backupPath);
         }, "CSVWriter");
 
         threadWriteCSV.start();
@@ -169,7 +184,7 @@ public class CSVHandler {
      * @param originalPath
      * @param backupPath
      */
-    private static void saveEmployeeListToCSV(List<EmployeeInfo> finalEmployeeList, Path originalPath, Path backupPath) {
+    private static Boolean trySaveEmployeeListToCSV(List<EmployeeInfo> finalEmployeeList, Path originalPath, Path backupPath) {
         // Files.moveとFiles.writeはIOExceptionになる可能性があるため囲う
         try {
             // finalEmployeeListをString型に変換
@@ -202,12 +217,9 @@ public class CSVHandler {
             // EMployeeManagerのリストも更新する
             EmployeeManager.setEmployeeList(finalEmployeeList);
             LOGGER.logOutput("データリストの更新完了。");
-
+            return true;
         } catch (Exception e) {
-            LOGGER.logException("データCSVへの書き込み中にエラーが発生しました。", e);
-            ErrorHandler.showErrorDialog("データCSVへの書き込み中にエラーが発生しました。\n書き込み前のデータを復元します。");
-
-            // バックアップから復元
+            LOGGER.logException("データCSVへの書き込み中にエラーが発生しました。\n書き込み前のデータを復元します。", e);
             LOGGER.logOutput("データCSVファイルの復元を開始。");
 
             try {
@@ -219,8 +231,8 @@ public class CSVHandler {
                 LOGGER.logOutput("バックアップからCSVファイルを復元しました。");
             } catch (Exception ex) {
                 LOGGER.logException("バックアップからの復元に失敗しました。", ex);
-                ErrorHandler.showErrorDialog("バックアップからの復元に失敗しました。");
             }
+            return false;
         }
     }
 

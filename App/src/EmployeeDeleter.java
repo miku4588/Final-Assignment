@@ -32,12 +32,12 @@ public class EmployeeDeleter {
                 iterator.remove();
                LOGGER.logOutput("社員ID：" + employeeId + "　" + employee.getName() + "の社員情報を削除します。");
 
-                // 書き込み処理を実行するが、戻り値は確認できない
-                 CSVHandler.writeCSV(employeeList);
-                return true;
+                // 書き込み処理を実行
+                Boolean tryWriteCSV = CSVHandler.tryWriteCSV(employeeList);
+                return tryWriteCSV;
             }
         }
-      LOGGER.logOutput("社員IDが見つかりませんでした。");
+        LOGGER.logOutput("社員IDが見つかりませんでした。");
         return false;
     }
 
