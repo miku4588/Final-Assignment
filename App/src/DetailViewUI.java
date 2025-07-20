@@ -129,8 +129,8 @@ public class DetailViewUI extends JFrame {
 
             // 中央右パネル…経歴、研修の受講歴、備考
             JPanel rightPanel = new JPanel();
-            rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS)); // 縦に並べる
-            rightPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // 余白
+            rightPanel.setLayout(new GridLayout(3, 1, 10, 10)); // 縦3等分になるよう設定
+            rightPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // 外側余白
             addScrollPane(rightPanel, "経歴", targetEmployee.getCareer());
             addScrollPane(rightPanel, "研修の受講歴", targetEmployee.getTrainingHistory());
             addScrollPane(rightPanel, "備考", targetEmployee.getRemarks());
@@ -187,8 +187,8 @@ public class DetailViewUI extends JFrame {
     /**
      * 値が選択可能（編集は不可）な項目行をパネルに追加する
      * @param panel 項目行を追加したいパネル
-     * @param label
-     * @param value
+     * @param label 項目名
+     * @param value 値
      */
     private void addSelectableField(JPanel panel, String label, String value) {
         // 項目名
@@ -212,8 +212,8 @@ public class DetailViewUI extends JFrame {
     /**
      * スクロール可能なテキストエリアをパネルに追加する
      * @param panel テキストエリアを追加したいパネル
-     * @param label
-     * @param value
+     * @param label 項目名
+     * @param value 値
      */
     private void addScrollPane(JPanel panel, String label, String value) {
         // 値がダブルクォーテーションで囲まれている場合は外しておく
@@ -223,21 +223,34 @@ public class DetailViewUI extends JFrame {
             displayValue = displayValue.substring(1, displayValue.length() - 1);
         }
 
-        // ラベル
+        // 項目名
         JPanel labelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         labelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, labelPanel.getPreferredSize().height)); // 最大の高さを固定
         JLabel nameLabel = new JLabel(label);
         labelPanel.add(nameLabel);
 
         // 値
-        JTextArea valuArea = new JTextArea(displayValue);
-        valuArea.setEditable(false);
-        valuArea.setOpaque(false); // 背景を透明に
-        JScrollPane valuScrollPane = new JScrollPane(valuArea);
+        JTextArea valueArea = new JTextArea(displayValue);
+        valueArea.setEditable(false); // 編集不可
+        valueArea.setLineWrap(true); // 横スクロールはせず折り返す
+        valueArea.setWrapStyleWord(true); // 単語単位で折り返す
+        valueArea.setOpaque(false); // 背景を透明に
 
-        // パネルに入れる
-        panel.add(labelPanel);
-        panel.add(valuScrollPane);
+        // スクロール可能なエリアにする
+        JScrollPane valueScrollPane = new JScrollPane(
+            valueArea, // テキストエリアをセット
+            JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, // 縦スクロールあり
+            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER // 横スクロールなし
+        );
+
+        // 項目名とスクロールペインを縦並びにする
+        JPanel container = new JPanel();
+        container.setLayout(new BorderLayout());
+        container.add(labelPanel, BorderLayout.NORTH);
+        container.add(valueScrollPane, BorderLayout.CENTER);
+
+        // パネルに追加
+        panel.add(container);
     }
 
 
