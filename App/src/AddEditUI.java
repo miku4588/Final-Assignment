@@ -4,7 +4,6 @@ import javax.swing.text.JTextComponent;
 
 import java.awt.event.*;
 import java.time.*;
-//import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
 import java.util.function.*;
@@ -104,7 +103,39 @@ public class AddEditUI {
         container.add(new JScrollPane(formPanel), gbc);
 
         frame.add(container, BorderLayout.CENTER);
+
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                formPanel.setExiting(true);
+                showConfirmExitDialog(); // ここで全処理を行う
+            }
+        });
         frame.setVisible(true);
+    }
+
+    private void showConfirmExitDialog() {
+        int choice = JOptionPane.showConfirmDialog(
+                frame,
+                "入力された情報を破棄し、アプリを終了します。よろしいですか？",
+                "確認",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+
+        System.out.println("選択されたボタン: " + choice); // 確認
+
+        if (choice == JOptionPane.YES_OPTION) {
+            formPanel.clearForm();
+            frame.dispose();
+
+            System.out.println("終了"); // 確認
+
+            System.exit(0); // ここで終了するはず
+
+        } else {
+            formPanel.setExiting(false);
+            System.out.println("キャンセルされました");
+        }
     }
 
     public void setEmployeeInfo(EmployeeInfo emp) {
@@ -232,26 +263,6 @@ class ButtonPanel extends JPanel {
                 LocalDate.now(),
                 LocalDate.now());
 
-        if (isEditMode) {
-            boolean result = EmployeeEditor.editEmployee(
-                    ((EmployeeId) fieldValues.get("employeeId")).getEmployeeId(),
-                    ((Name) fieldValues.get("name")).getName(),
-                    ((Phonetic) fieldValues.get("phonetic")).getPhonetic(),
-                    ((BirthDate) fieldValues.get("birthDate")).getBirthDate().toString(),
-                    ((JoinYearMonth) fieldValues.get("joinYearMonth")).toString(),
-                    ((EngineerStartYear) fieldValues.get("engineerStartYear")).getEngineerStartYear().toString(),
-                    String.valueOf(((TechnicalSkill) fieldValues.get("technicalSkill")).getTechnicalSkill()),
-                    String.valueOf(((Attitude) fieldValues.get("attitude")).getAttitude()),
-                    String.valueOf(
-                            ((CommunicationSkill) fieldValues.get("communicationSkill")).getCommunicationSkill()),
-                    String.valueOf(((Leadership) fieldValues.get("leadership")).getLeadership()),
-                    ((TrainingHistory) fieldValues.get("trainingHistory")).getTrainingHistory(),
-                    ((Career) fieldValues.get("career")).getCareer(),
-                    ((Remarks) fieldValues.get("remarks")).getRemarks(),
-                    ((Languages) fieldValues.get("languages")).toString(),
-                    (employeeInfo, isNew) -> CSVHandler.writeCSV(employeeInfo, isNew));
-        }
-
         // 処理中ダイアログを作成
         JDialog progressDialog = new JDialog(frame, isEditMode ? "更新中" : "処理中", true);
         progressDialog.setLayout(new BorderLayout());
@@ -330,13 +341,14 @@ class ButtonPanel extends JPanel {
     }
 
     private String escapeForCSV(String text) {
-        if (text == null)
-            return "";
-        String escaped = text.replace("\"", "\"\"");
-        if (escaped.contains(",") || escaped.contains("\n") || escaped.contains("\"")) {
-            escaped = "\"" + escaped + "\"";
-        }
-        return escaped;
+        if (text == null || text.isEmpty())
+            return "\"\"";
+
+        // 文中のダブルクォーテーションはすべて削除
+        String sanitized = text.replace("\"", "");
+
+        // 全体を新たにダブルクォーテーションで囲む
+        return "\"" + sanitized + "\"";
     }
 
     /** 言語選択バリデーション */
@@ -422,6 +434,12 @@ class EmployeeFormPanel extends JPanel {
     private JComboBox<String> joinYearCombo, joinMonthCombo;
     private JTextField programmingLanguageField;
 
+    private boolean isExiting = false;
+
+    public void setExiting(boolean exiting) {
+        this.isExiting = exiting;
+    }
+
     public void setEmployeeInfo(EmployeeInfo emp) {
         employeeIdField.setText(emp.getEmployeeId());
         phoneticField.setText(emp.getPhonetic());
@@ -477,6 +495,23 @@ class EmployeeFormPanel extends JPanel {
 
     // 経歴・備考
     private JTextArea careerArea, trainingHistoryArea, remarksArea;
+
+    // フォームのクリア処理
+    public void clearForm() {
+        employeeIdField.setText("");
+        nameField.setText("");
+        phoneticField.setText("");
+        programmingLanguageField.setText("");
+
+        // 生年月日関連
+        birthYearCombo.setSelectedIndex(-1);
+        birthMonthCombo.setSelectedIndex(-1);
+        birthDayCombo.setSelectedIndex(-1);
+
+        // 入社年月
+        joinYearCombo.setSelectedIndex(-1);
+        joinMonthCombo.setSelectedIndex(-1);
+    }
 
     /** フォームレイアウト初期化 */
     public EmployeeFormPanel(JTextField employeeIdField) {
@@ -794,6 +829,8 @@ class EmployeeFormPanel extends JPanel {
     private void addTextValidation(JTextComponent component, Function<String, EmployeeInfoValidator> validator) {
         component.addFocusListener(new FocusAdapter() {
             public void focusLost(FocusEvent e) {
+                if (isExiting)
+                    return; // アプリ終了中ならスキップ
                 validateComponent(component, validator.apply(component.getText().trim()));
             }
         });
@@ -803,6 +840,8 @@ class EmployeeFormPanel extends JPanel {
     private void addComboValidation(JComboBox<?> combo, Supplier<EmployeeInfoValidator> validatorSupplier) {
         combo.addFocusListener(new FocusAdapter() {
             public void focusLost(FocusEvent e) {
+                if (isExiting)
+                    return; // アプリ終了中ならスキップ
                 validateComponent(combo, validatorSupplier.get());
             }
         });
