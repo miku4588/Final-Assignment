@@ -4,6 +4,7 @@ import javax.swing.text.JTextComponent;
 
 import java.awt.event.*;
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
 import java.util.function.*;
@@ -40,14 +41,7 @@ public class AddEditUI {
             frame.setTitle("エンジニア編集"); // タイトルも変える
             setEmployeeInfo(emp); // フォームにデータをセット
             employeeIdField.setEditable(false); // 社員IDを編集不可にする
-            // 日付表示設定
-            String currentDate = new SimpleDateFormat("yyyy/MM/d").format(new Date());
-            creationDateLabel = new JLabel("データ作成日: " + currentDate);
-            lastUpdatedDateLabel = new JLabel("最終更新日: " + currentDate);
-            JPanel datePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-            datePanel.add(creationDateLabel);
-            datePanel.add(lastUpdatedDateLabel);
-            frame.add(datePanel, BorderLayout.SOUTH);
+            creationDateLabel.setText("データ作成日: " + emp.getCreationDate().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))); // データ作成日を設定
         }
     }
 
@@ -55,7 +49,7 @@ public class AddEditUI {
     private void initialize(Boolean isEditMode) {
         frame = new JFrame("エンジニア新規追加");
         frame.setSize(1000, 700);
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         frame.setLayout(new BorderLayout());
 
         JPanel idPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 3));
@@ -74,12 +68,17 @@ public class AddEditUI {
                 isEditMode);
 
         // 日付表示設定
+        JPanel datePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         String currentDate = new SimpleDateFormat("yyyy/MM/d").format(new Date());
         creationDateLabel = new JLabel("データ作成日: " + currentDate);
-        // lastUpdatedDateLabel = new JLabel("最終更新日: " + currentDate);
-        JPanel datePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         datePanel.add(creationDateLabel);
-        // datePanel.add(lastUpdatedDateLabel);
+
+        // 編集モードの場合だけ最終更新日を表示
+        if (isEditMode) {
+            lastUpdatedDateLabel = new JLabel("最終更新日: " + currentDate);
+            datePanel.add(lastUpdatedDateLabel);
+        }
+
         frame.add(datePanel, BorderLayout.SOUTH);
 
         // メインレイアウト設定
@@ -134,7 +133,6 @@ public class AddEditUI {
 
         } else {
             formPanel.setExiting(false);
-            System.out.println("キャンセルされました");
         }
     }
 
@@ -340,15 +338,29 @@ class ButtonPanel extends JPanel {
         progressDialog.setVisible(true);
     }
 
+    /**
+     * 改行を含む項目のダブルクォーテーションを調整
+     * @param text
+     * @return
+     */
     private String escapeForCSV(String text) {
+        // 値が空なら空文字「""」を返す
         if (text == null || text.isEmpty())
             return "\"\"";
 
-        // 文中のダブルクォーテーションはすべて削除
-        String sanitized = text.replace("\"", "");
+        // 3文字以上かつ先頭と末尾がダブルクォーテーションの場合は、いったん先頭と末尾の文字を消す
+        if (text.length() > 2 && text.startsWith("\"") && text.endsWith("\""))
+            return text.substring(1, text.length() - 1);
+
+        // 文中のダブルクォーテーションを2個連続に置換
+        String sanitized = text.replace("\"", "\"\"");
 
         // 全体を新たにダブルクォーテーションで囲む
-        return "\"" + sanitized + "\"";
+        if (sanitized.contains("\n")) {
+            return "\"" + sanitized + "\"";
+        } else {
+            return sanitized;
+        }        
     }
 
     /** 言語選択バリデーション */
@@ -471,15 +483,27 @@ class EmployeeFormPanel extends JPanel {
         communicationSkillCombo.setSelectedItem(String.valueOf(emp.getCommunicationSkill()));
         leadershipCombo.setSelectedItem(String.valueOf(emp.getLeadership()));
 
-        careerArea.setText(emp.getCareer());
-        trainingHistoryArea.setText(emp.getTrainingHistory());
-        remarksArea.setText(emp.getRemarks());
+        careerArea.setText(escapeForTextArea(emp.getCareer()));
+        trainingHistoryArea.setText(escapeForTextArea(emp.getTrainingHistory()));
+        remarksArea.setText(escapeForTextArea(emp.getRemarks()));
 
         // 言語選択のチェックボックスは一旦全部オフにしてから
         Set<String> selectedLangs = emp.getLanguages();
         for (JCheckBox cb : languageCheckboxes) {
             cb.setSelected(selectedLangs.contains(cb.getText()));
         }
+    }
+
+    private String escapeForTextArea(String text) {
+        // 値が空なら空文字「""」を返す
+        if (text.equals("\"\"") || text == null || text.isEmpty())
+            return null;
+
+        // 3文字以上かつ先頭と末尾がダブルクォーテーションの場合は、先頭と末尾の文字を消す
+        if (text.length() > 2 && text.startsWith("\"") && text.endsWith("\""))
+            return text.substring(1, text.length() - 1);
+
+        return text;
     }
 
     // 職業情報フィールド
