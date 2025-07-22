@@ -12,9 +12,11 @@ class BirthDate extends EmployeeInfoValidator {
 
     public BirthDate(String birthString) {
         String normalizedDateStr = birthString.replace("-", "/");
-        System.out.println("normalizedDateStr = " + normalizedDateStr);
-        this.birthDate = LocalDate.parse(normalizedDateStr, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-
+        if (birthString.equals("")) {
+            this.birthDate = null;
+        } else {
+            this.birthDate = LocalDate.parse(normalizedDateStr, DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        }
     }
 
     /**
