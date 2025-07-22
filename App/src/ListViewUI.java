@@ -314,6 +314,7 @@ public class ListViewUI {
                         if (result) {
                             JOptionPane.showMessageDialog(frame, "削除が完了しました。", "削除完了",JOptionPane.INFORMATION_MESSAGE);
                             LOGGER.logOutput("削除が完了しました。");
+                            keywordSearch(null); // 画面を更新するため、キーワードなしで検索
                         }
                     } catch (Exception e) {
                         LOGGER.logException("予期せぬエラーが発生しました。", e);
