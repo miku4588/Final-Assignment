@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.time.LocalDate;
+import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -187,11 +188,9 @@ public class ListViewUI {
         model = new DefaultTableModel(columnNames, 0) {
             @Override
             public Class<?> getColumnClass(int columnIndex) {
-                // 年齢とエンジニア歴は数値、他は文字
-                if (columnIndex == 0) { // チェックボックス列
+                // 1列目はチェックボックス、他は文字
+                if (columnIndex == 0) {
                     return Boolean.class;
-                } else if (columnIndex == 3 || columnIndex == 4) {
-                    return Integer.class;
                 } else {
                     return String.class;
                 }
@@ -335,16 +334,21 @@ public class ListViewUI {
      * @param emp 社員情報
      * @return 年齢
      */
-    private int calculateAge(EmployeeInfo emp) {
+    private String calculateAge(EmployeeInfo emp) {
         LocalDate birthDate = emp.getBirthDate();
+
+        // 生年月日が未入力だった場合の対応
+        if (birthDate == null) 
+            return "";
+
         LocalDate now = LocalDate.now();
         int age = now.getYear() - birthDate.getYear();
 
         // まだ誕生日来てなければ1引く
-        if (now.getDayOfYear() < birthDate.getDayOfYear()) {
+        if (now.getDayOfYear() < birthDate.getDayOfYear())
             age--;
-        }
-        return age;
+
+        return String.valueOf(age);
     }
 
 
@@ -353,11 +357,15 @@ public class ListViewUI {
      * @param emp 社員情報
      * @return エンジニア歴
      */
-    private int calculateEngineerYears(EmployeeInfo emp) {
-        int startYear = emp.getEngineerStartYear().getValue();
-        int years = LocalDate.now().getYear() - startYear;
+    private String calculateEngineerYears(EmployeeInfo emp) {
+        Year startYear = emp.getEngineerStartYear();
 
-        return years;
+        // エンジニア開始年が未入力だった場合の対応
+        if (startYear == null) 
+            return "";
+
+        int years = LocalDate.now().getYear() - startYear.getValue();
+        return String.valueOf(years);
     }
 
 
