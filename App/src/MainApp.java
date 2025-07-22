@@ -46,6 +46,7 @@ public class MainApp {
             new ListViewUI(EmployeeManager.getInstance());
         } catch (IllegalStateException e) {
             LOGGER.logOutput("データが不正のため一覧画面の表示を中止します。");
+            System.exit(0);
         }
     }
 
@@ -79,6 +80,7 @@ public class MainApp {
                 // リストがnullならエラーなので、データを読み込まない
                 if(employeeList == null) {
                     LOGGER.logOutput("データが不正のため読み込み処理を中止します。");
+                    System.exit(0);
                 } else {
                     EmployeeManager.initializeEmployeeManager(employeeList);
                 }
