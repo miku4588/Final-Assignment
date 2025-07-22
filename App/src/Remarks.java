@@ -31,7 +31,16 @@ public class Remarks extends EmployeeInfoValidator {
      */
     @Override
     protected boolean validateInput(String remarks) {
-        return validateLength(remarks, 0, 500);
+        String remarksForValid = remarks;
+
+        // 改行を含む場合に対応
+        if (remarks.contains("\n")) {
+            remarksForValid = remarks.replace("\n", ""); // 改行文字を消す
+
+            if (remarks.length() > 2 && remarks.startsWith("\"") && remarks.endsWith("\""))
+                remarksForValid = remarksForValid.substring(1, remarksForValid.length() - 1); // ダブルクォーテーションで囲まれてたらそれを外す
+        }
+        return validateLength(remarksForValid, 0, 500);
     }
 
     /**

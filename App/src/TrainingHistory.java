@@ -28,7 +28,16 @@ class TrainingHistory extends EmployeeInfoValidator {
      */
     @Override
     protected boolean validateInput(String trainingHistory) {
-        return validateLength(trainingHistory, 0, 500);
+        String historyForValid = trainingHistory;
+
+        // 改行を含む場合に対応
+        if (trainingHistory.contains("\n")) {
+            historyForValid = trainingHistory.replace("\n", ""); // 改行文字を消す
+            
+            if (trainingHistory.length() > 2 && trainingHistory.startsWith("\"") && trainingHistory.endsWith("\""))
+                historyForValid = historyForValid.substring(1, historyForValid.length() - 1); // ダブルクォーテーションで囲まれてたらそれを外す
+        }
+        return validateLength(historyForValid, 0, 500);
     }
 
     /**
