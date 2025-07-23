@@ -41,7 +41,8 @@ public class AddEditUI {
             frame.setTitle("エンジニア編集"); // タイトルも変える
             setEmployeeInfo(emp); // フォームにデータをセット
             employeeIdField.setEditable(false); // 社員IDを編集不可にする
-            creationDateLabel.setText("データ作成日: " + emp.getCreationDate().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))); // データ作成日を設定
+            creationDateLabel
+                    .setText("データ作成日: " + emp.getCreationDate().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))); // データ作成日を設定
         }
     }
 
@@ -257,7 +258,8 @@ class ButtonPanel extends JPanel {
                 (Career) fieldValues.get("career"),
                 (TrainingHistory) fieldValues.get("trainingHistory"),
                 (Remarks) fieldValues.get("remarks"),
-                new Languages(), // ここは適宜調整を
+                (Languages) fieldValues.get("languages"), // UIから選ばれた言語
+
                 LocalDate.now(),
                 LocalDate.now());
 
@@ -340,6 +342,7 @@ class ButtonPanel extends JPanel {
 
     /**
      * 改行を含む項目のダブルクォーテーションを調整
+     * 
      * @param text
      * @return
      */
@@ -360,23 +363,26 @@ class ButtonPanel extends JPanel {
             return "\"" + sanitized + "\"";
         } else {
             return sanitized;
-        }        
+        }
     }
 
-    /** 言語選択バリデーション */
     private void validateLanguages(List<String> errors, Map<String, Object> fieldValues) {
         try {
             Languages languages = new Languages();
-            for (String lang : formPanel.getSelectedLanguages()) {
-                if (!languages.addLanguage(lang)) {
-                    throw new IllegalArgumentException("無効な言語です: " + lang);
+            String input = formPanel.getProgrammingLanguageField().getText(); // ← ここで自由入力を取得
+            if (input != null && !input.trim().isEmpty()) {
+                String[] langArray = input.split(",\\s*"); // カンマ区切り＋空白トリム
+                for (String lang : langArray) {
+                    if (!languages.addLanguage(lang.trim())) {
+                        throw new IllegalArgumentException("無効な言語です: " + lang);
+                    }
                 }
             }
             fieldValues.put("languages", languages);
 
         } catch (Exception e) {
-            errors.add("言語選択: " + e.getMessage());
-            formPanel.updateFieldValidation(formPanel.getLanguagePanel(), false);
+            errors.add("言語入力: " + e.getMessage());
+            formPanel.updateFieldValidation(formPanel.getProgrammingLanguageField(), false);
         }
     }
 
@@ -535,6 +541,10 @@ class EmployeeFormPanel extends JPanel {
         // 入社年月
         joinYearCombo.setSelectedIndex(-1);
         joinMonthCombo.setSelectedIndex(-1);
+    }
+
+    public JTextField getProgrammingLanguageField() {
+        return programmingLanguageField;
     }
 
     /** フォームレイアウト初期化 */
