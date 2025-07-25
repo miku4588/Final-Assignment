@@ -324,13 +324,12 @@ class ButtonPanel extends JPanel {
                                 "完了",
                                 JOptionPane.INFORMATION_MESSAGE);
                         frame.dispose();
-
+                        // 新規作成時：一覧画面に遷移
+                        new ListViewUI(EmployeeManager.getInstance());
+                        
                         if (isEditMode) {
                             // 編集時：詳細画面に遷移
                             new DetailViewUI(employeeId);
-
-                            // 新規作成時：一覧画面に遷移
-                            new ListViewUI(EmployeeManager.getInstance());
                         }
 
                     } else {
