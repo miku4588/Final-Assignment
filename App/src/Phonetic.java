@@ -7,7 +7,7 @@ class Phonetic extends EmployeeInfoValidator {
 
     public Phonetic(String phonetic) {
         if (!validateInput(phonetic)) {
-            throw new IllegalArgumentException("氏名カナは1〜30文字の範囲で、全角カナ・全角スペース・半角スペースのみ使用できます。");
+            throw new IllegalArgumentException("氏名カナは0〜30文字の範囲で、全角カナ・全角スペース・半角スペースのみ使用できます。");
         }
         this.phonetic = phonetic;
     }
@@ -17,7 +17,7 @@ class Phonetic extends EmployeeInfoValidator {
         if (phonetic == null) {
             return false;
         }
-        return validateLength(phonetic, 1, 30) && validateCharacterType(phonetic);
+        return validateLength(phonetic, 0, 30) && validateCharacterType(phonetic);
     }
 
     /**
