@@ -313,6 +313,8 @@ class ButtonPanel extends JPanel {
 
             @Override
             protected void done() {
+                String employeeId = ((EmployeeId) fieldValues.get("employeeId")).getEmployeeId();
+
                 progressDialog.dispose();
                 try {
                     boolean result = get();
@@ -322,7 +324,15 @@ class ButtonPanel extends JPanel {
                                 "完了",
                                 JOptionPane.INFORMATION_MESSAGE);
                         frame.dispose();
-                        new ListViewUI(EmployeeManager.getInstance());
+
+                        if (isEditMode) {
+                            // 編集時：詳細画面に遷移
+                            new DetailViewUI(employeeId);
+
+                            // 新規作成時：一覧画面に遷移
+                            new ListViewUI(EmployeeManager.getInstance());
+                        }
+
                     } else {
                         JOptionPane.showMessageDialog(frame,
                                 isEditMode ? "更新に失敗しました。" : "保存に失敗しました。",
@@ -334,6 +344,7 @@ class ButtonPanel extends JPanel {
                     JOptionPane.showMessageDialog(frame, "エラーが発生しました。", "例外", JOptionPane.ERROR_MESSAGE);
                 }
             }
+
         };
 
         worker.execute();
