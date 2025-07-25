@@ -22,11 +22,14 @@ public class AddEditUI {
     private JLabel creationDateLabel;
     private JLabel lastUpdatedDateLabel;
     private JTextField employeeIdField;
+    // ロガーを取得
+    private static final EmployeeInfoLogger LOGGER = EmployeeInfoLogger.getInstance();
 
     /**
      * 新規データ追加用のコンストラクタ
      */
     public AddEditUI() {
+        LOGGER.logOutput("新規追加画面を表示。");
         initialize(false);
     }
 
@@ -36,6 +39,7 @@ public class AddEditUI {
      * @param emp 編集したい社員の情報
      */
     public AddEditUI(EmployeeInfo emp) {
+        LOGGER.logOutput("氏名：" + emp.getName() + "の編集画面を表示。");
         initialize(true);
         if (emp != null) {
             frame.setTitle("エンジニア編集"); // タイトルも変える
@@ -122,17 +126,17 @@ public class AddEditUI {
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE);
 
-        System.out.println("選択されたボタン: " + choice); // 確認
+        LOGGER.logOutput("アプリ終了確認: " + choice);
 
         if (choice == JOptionPane.YES_OPTION) {
             formPanel.clearForm();
             frame.dispose();
 
-            System.out.println("終了"); // 確認
-
-            System.exit(0); // ここで終了するはず
+            LOGGER.logOutput(JOptionPane.YES_OPTION + "が選択されたためアプリを終了します。");
+            System.exit(0);
 
         } else {
+            LOGGER.logOutput("アプリの終了がキャンセルされました。");
             formPanel.setExiting(false);
         }
     }
@@ -156,6 +160,8 @@ class ButtonPanel extends JPanel {
     private JTextField employeeIdField;
     private boolean isEditMode;
     private String employeeId;
+    // ロガーを取得
+    private static final EmployeeInfoLogger LOGGER = EmployeeInfoLogger.getInstance();
 
     /**
      * ボタンとアクションリスナーを初期化
@@ -186,12 +192,12 @@ class ButtonPanel extends JPanel {
     /** 従業員情報保存処理 */
     private void saveEmployee() {
 
-        System.out.println("saveEmployeeメソッド呼ばれました");// 動作確認用
+        LOGGER.logOutput("入力された情報を保存します。");
 
         List<String> errors = new ArrayList<>();
         Map<String, Object> fieldValues = new HashMap<>();
 
-        System.out.println("バリデーション開始");// 動作確認用
+        LOGGER.logOutput("バリデーション開始。");
 
         // フィールドバリデーション一括実行
         validateField("employeeId", employeeIdField, text -> new EmployeeId(text), errors, fieldValues);
@@ -238,11 +244,12 @@ class ButtonPanel extends JPanel {
         validateLanguages(errors, fieldValues);
 
         if (!errors.isEmpty()) {
+            LOGGER.logOutput("バリデーションチェックNG。エラー一覧を出力します。");
             showValidationErrors(errors);
             return;
         }
 
-        System.out.println("新しい従業員オブジェクト作成開始");// 動作確認用
+        LOGGER.logOutput("従業員オブジェクトを生成。");
 
         // 従業員情報オブジェクト作成
         EmployeeInfo newEmployee = new EmployeeInfo(
@@ -320,6 +327,7 @@ class ButtonPanel extends JPanel {
                 try {
                     boolean result = get();
                     if (result) {
+                        LOGGER.logOutput("従業員情報の保存が完了しました。");
                         JOptionPane.showMessageDialog(frame,
                                 isEditMode ? "更新しました。" : "保存しました。",
                                 "完了",
@@ -334,6 +342,7 @@ class ButtonPanel extends JPanel {
                             new ListViewUI(EmployeeManager.getInstance());
                         }
                     } else {
+                        LOGGER.logOutput("従業員情報の保存に失敗しましたしました。");
                         // 失敗時はエラーメッセージだけ表示
                         JOptionPane.showMessageDialog(frame,
                                 isEditMode ? "更新に失敗しました。" : "保存に失敗しました。",
@@ -342,7 +351,7 @@ class ButtonPanel extends JPanel {
                     }
 
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    LOGGER.logException("従業員情報の保存中にエラーが発生しました。", ex);
                     JOptionPane.showMessageDialog(frame, "エラーが発生しました。", "例外", JOptionPane.ERROR_MESSAGE);
                 }
             }
@@ -448,8 +457,12 @@ class ButtonPanel extends JPanel {
         int result = JOptionPane.showConfirmDialog(
                 frame, "変更を破棄しますか？", "確認", JOptionPane.YES_NO_OPTION);
 
+                
+        LOGGER.logOutput("キャンセル確認: " + result);
+
         if (result == JOptionPane.YES_OPTION) {
             frame.setVisible(false);
+            LOGGER.logOutput(JOptionPane.YES_OPTION + "が選択されたため、保存せず前の画面へ戻ります。");
 
             if (isEditMode) {
                 // 編集時は詳細画面へ遷移
