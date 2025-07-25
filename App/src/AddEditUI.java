@@ -155,6 +155,7 @@ class ButtonPanel extends JPanel {
     private EmployeeFormPanel formPanel;
     private JTextField employeeIdField;
     private boolean isEditMode;
+    private String employeeId;
 
     /**
      * ボタンとアクションリスナーを初期化
@@ -313,7 +314,7 @@ class ButtonPanel extends JPanel {
 
             @Override
             protected void done() {
-                String employeeId = ((EmployeeId) fieldValues.get("employeeId")).getEmployeeId();
+                employeeId = ((EmployeeId) fieldValues.get("employeeId")).getEmployeeId();
 
                 progressDialog.dispose();
                 try {
@@ -324,20 +325,22 @@ class ButtonPanel extends JPanel {
                                 "完了",
                                 JOptionPane.INFORMATION_MESSAGE);
                         frame.dispose();
-                        // 新規作成時：一覧画面に遷移
-                        new ListViewUI(EmployeeManager.getInstance());
-                        
-                        if (isEditMode) {
-                            // 編集時：詳細画面に遷移
-                            new DetailViewUI(employeeId);
-                        }
 
+                        if (isEditMode) {
+                            // 編集成功なら詳細画面へ戻る
+                            new DetailViewUI(employeeId);
+                        } else {
+                            // 新規作成成功なら一覧画面へ戻る
+                            new ListViewUI(EmployeeManager.getInstance());
+                        }
                     } else {
+                        // 失敗時はエラーメッセージだけ表示
                         JOptionPane.showMessageDialog(frame,
                                 isEditMode ? "更新に失敗しました。" : "保存に失敗しました。",
                                 "エラー",
                                 JOptionPane.ERROR_MESSAGE);
                     }
+
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(frame, "エラーが発生しました。", "例外", JOptionPane.ERROR_MESSAGE);
@@ -441,12 +444,22 @@ class ButtonPanel extends JPanel {
 
     /** 破棄確認ダイアログ表示 */
     private void showDiscardDialog() {
-        if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(
-                frame, "変更を破棄しますか？", "確認", JOptionPane.YES_NO_OPTION)) {
+
+        int result = JOptionPane.showConfirmDialog(
+                frame, "変更を破棄しますか？", "確認", JOptionPane.YES_NO_OPTION);
+
+        if (result == JOptionPane.YES_OPTION) {
             frame.setVisible(false);
-            // 一覧画面を開く
-            new ListViewUI(EmployeeManager.getInstance());
+
+            if (isEditMode) {
+                // 編集時は詳細画面へ遷移
+                new DetailViewUI(employeeId);
+            } else {
+                // 新規追加時は一覧画面へ遷移
+                new ListViewUI(EmployeeManager.getInstance());
+            }
         }
+        // NOの場合は何もしない（画面そのまま）
     }
 }
 
