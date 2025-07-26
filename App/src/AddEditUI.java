@@ -40,7 +40,7 @@ public class AddEditUI {
      */
     public AddEditUI(EmployeeInfo emp) {
         LOGGER.logOutput("氏名：" + emp.getName() + "の編集画面を表示。");
-        initialize(true);
+        initialize(true, emp.getEmployeeId());
         if (emp != null) {
             frame.setTitle("エンジニア編集"); // タイトルも変える
             setEmployeeInfo(emp); // フォームにデータをセット
@@ -48,10 +48,16 @@ public class AddEditUI {
             creationDateLabel
                     .setText("データ作成日: " + emp.getCreationDate().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))); // データ作成日を設定
         }
+
+    }
+
+    // initializeオーバーロード（新規追加用から呼ばれる）
+    private void initialize(boolean isEditMode) {
+        initialize(isEditMode, (String) null);
     }
 
     /** UIコンポーネントの設定とレイアウト */
-    private void initialize(Boolean isEditMode) {
+    private void initialize(boolean isEditMode, String employeeId) {
         frame = new JFrame("エンジニア新規追加");
         frame.setSize(1000, 700);
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -70,7 +76,8 @@ public class AddEditUI {
                 frame,
                 formPanel,
                 this.employeeIdField, // クラスフィールドを渡す
-                isEditMode);
+                isEditMode,
+                employeeId);
 
         // 日付表示設定
         JPanel datePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -134,11 +141,11 @@ public class AddEditUI {
 
             LOGGER.logOutput(JOptionPane.YES_OPTION + "が選択されたためアプリを終了します。");
             System.exit(0);
-
         } else {
             LOGGER.logOutput("アプリの終了がキャンセルされました。");
             formPanel.setExiting(false);
         }
+
     }
 
     public void setEmployeeInfo(EmployeeInfo emp) {
@@ -171,11 +178,13 @@ class ButtonPanel extends JPanel {
      * @param employeeIdField 社員ID入力フィールド
      * @param isEditMode
      */
-    public ButtonPanel(JFrame frame, EmployeeFormPanel formPanel, JTextField employeeIdField, boolean isEditMode) {
+    public ButtonPanel(JFrame frame, EmployeeFormPanel formPanel, JTextField employeeIdField, boolean isEditMode,
+            String employeeId) {
         this.frame = frame;
         this.formPanel = formPanel;
         this.employeeIdField = employeeIdField;
         this.isEditMode = isEditMode;
+        this.employeeId = employeeId;
 
         setLayout(new FlowLayout(FlowLayout.RIGHT)); // ボタンを右寄せ
         JButton saveButton = new JButton("保存"); // ボタンを作成＝表示はされない
@@ -208,7 +217,7 @@ class ButtonPanel extends JPanel {
         validateField(
                 "birthDate",
                 formPanel.getBirthYearCombo(),
-                s -> new BirthDate(formPanel.getBirthDate()), // ← これでOK
+                s -> new BirthDate(formPanel.getBirthDate()),
                 errors,
                 fieldValues);
 
@@ -342,8 +351,8 @@ class ButtonPanel extends JPanel {
                             new ListViewUI(EmployeeManager.getInstance());
                         }
                     } else {
-                        LOGGER.logOutput("従業員情報の保存に失敗しましたしました。");
                         // 失敗時はエラーメッセージだけ表示
+                        LOGGER.logOutput("従業員情報の保存に失敗しましたしました。");
                         JOptionPane.showMessageDialog(frame,
                                 isEditMode ? "更新に失敗しました。" : "保存に失敗しました。",
                                 "エラー",
@@ -456,14 +465,12 @@ class ButtonPanel extends JPanel {
 
         int result = JOptionPane.showConfirmDialog(
                 frame, "変更を破棄しますか？", "確認", JOptionPane.YES_NO_OPTION);
-
-                
         LOGGER.logOutput("キャンセル確認: " + result);
 
         if (result == JOptionPane.YES_OPTION) {
             frame.setVisible(false);
             LOGGER.logOutput(JOptionPane.YES_OPTION + "が選択されたため、保存せず前の画面へ戻ります。");
-
+            
             if (isEditMode) {
                 // 編集時は詳細画面へ遷移
                 new DetailViewUI(employeeId);
